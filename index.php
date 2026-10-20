@@ -11,18 +11,19 @@ $pageTitle = 'Workbench';
 require __DIR__ . '/includes/header.php';
 $user = current_user();
 ?>
-<div class="page-heading">
-    <h1 class="eyebrow">Workbench</h1>
-</div>
+<section class="page-heading">
+    <h1>HTTP Security Workbench</h1>
+    <p>Inspect request parameters, study server security controls, and solve isolated local challenges.</p>
+</section>
 <div class="workbench-layout">
-<section class="training-index">
+<section class="training-index" aria-labelledby="challenges-heading">
     <div class="section-heading">
-        <h2>Challenges</h2>
+        <h2 id="challenges-heading">Challenges</h2>
     </div>
     <div class="challenge-list">
         <?php $num = 1; foreach (challenge_definitions() as $slug => $definition): ?>
             <a class="challenge-row" href="/challenge.php?slug=<?= e($slug) ?>">
-                <div class="challenge-number"><?= sprintf('%02d', $num++) ?></div>
+                <span class="challenge-number"><?= sprintf('%02d', $num++) ?></span>
                 <div class="challenge-main">
                     <h3><?= e($definition['title']) ?></h3>
                     <p><?= e($definition['summary']) ?></p>
@@ -43,25 +44,25 @@ $user = current_user();
     </div>
 </section>
 
-<section class="api-demo">
+<section class="api-demo" aria-labelledby="inspector-heading">
     <div class="section-heading">
-        <h2>HTTP Inspector</h2>
+        <h2 id="inspector-heading">HTTP Inspector</h2>
     </div>
     <div class="inspector-console">
         <form id="api-demo-form" novalidate>
             <div class="request-line">
                 <span class="method">GET</span> 
-                <code>/api/users.php?id=<input id="api-user-id" class="inline-input technical" name="id" type="number" min="1" placeholder="1" required></code>
+                <code>/api/users.php?id=<input id="api-user-id" class="inline-input" name="id" type="number" min="1" placeholder="1" required></code>
                 <button type="submit">Send</button>
             </div>
         </form>
         <div class="response-panel">
             <dl id="api-metadata" class="response-metadata">
-                <dt>Status</dt><dd id="api-status" class="technical">—</dd>
-                <dt>Content-Type</dt><dd class="technical">—</dd>
-                <dt>Cache-Control</dt><dd class="technical">—</dd>
+                <dt>Status</dt><dd id="api-status">—</dd>
+                <dt>Content-Type</dt><dd>—</dd>
+                <dt>Cache-Control</dt><dd>—</dd>
             </dl>
-            <pre id="api-result" class="technical" tabindex="0" aria-label="JSON response"></pre>
+            <pre id="api-result" tabindex="0" aria-label="JSON response"></pre>
         </div>
     </div>
     <noscript><p class="hint">The inspector needs JavaScript. You can <a href="/api/users.php?id=1">open the endpoint directly</a>.</p></noscript>

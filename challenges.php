@@ -28,8 +28,9 @@ require __DIR__ . '/includes/header.php';
 <section class="page-heading catalog-heading">
     <div>
         <h1>Challenges</h1>
+        <p>Progressive hands-on HTTP and security inspection exercises.</p>
     </div>
-    <div class="progress"><span class="technical"><?= count($solves) ?> / <?= count($definitions) ?></span> solved</div>
+    <div class="progress"><span><?= count($solves) ?> / <?= count($definitions) ?></span> solved</div>
 </section>
 <section aria-label="HTTP exercises">
     <div class="section-heading"><h2>HTTP fundamentals</h2></div>
@@ -37,7 +38,7 @@ require __DIR__ . '/includes/header.php';
         <?php $num = 1; foreach ($definitions as $slug => $challenge): ?>
             <?php $isSolved = isset($solves[$slug]); ?>
             <a class="challenge-row" href="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>">
-                <div class="challenge-number"><?= sprintf('%02d', $num++) ?></div>
+                <span class="challenge-number"><?= sprintf('%02d', $num++) ?></span>
                 <div class="challenge-main">
                     <h3><?= e($challenge['title']) ?></h3>
                     <p><?= e($challenge['summary']) ?></p>

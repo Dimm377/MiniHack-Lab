@@ -77,7 +77,7 @@ require __DIR__ . '/includes/header.php';
 <!-- MiniHack challenge flag: <?= e($expectedFlag) ?> -->
 <?php endif; ?>
 <section class="page-heading">
-    <p><a href="/challenges.php">&larr; All challenges</a></p>
+    <p class="back-link"><a href="/challenges.php">&larr; All challenges</a></p>
     <h1><?= e($challenge['title']) ?></h1>
     <div class="section-heading">
         <p><?= e($challenge['summary']) ?></p>
@@ -139,7 +139,7 @@ require __DIR__ . '/includes/header.php';
     <form method="post" action="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>" novalidate>
         <?= csrf_input() ?>
         <label for="flag">Flag</label>
-        <input id="flag" class="technical" name="flag" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="MHL{...}"<?= $error !== null ? ' aria-invalid="true" aria-describedby="flag-error"' : '' ?> required>
+        <input id="flag" class="flag-input" name="flag" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="MHL{...}"<?= $error !== null ? ' aria-invalid="true" aria-describedby="flag-error"' : '' ?> required>
         <button type="submit">Submit flag</button>
     </form>
 </section>
@@ -147,7 +147,7 @@ require __DIR__ . '/includes/header.php';
 <?php if ($solvedAt !== false): ?>
 <div class="solved-answer">
     <h2>Solved</h2>
-    <code class="technical"><?= e($expectedFlag) ?></code>
+    <code><?= e($expectedFlag) ?></code>
 </div>
 <section class="learning-content">
     <h2>Why It Worked</h2>

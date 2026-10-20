@@ -23,7 +23,7 @@ $navItems = ['/' => 'Workbench', '/challenges.php' => 'Challenges', '/search.php
 <header class="site-header">
     <div class="header-top">
         <a class="brand" href="/">MiniHack <span>Web Lab</span></a>
-        <span class="version technical">v0.2</span>
+        <span class="version">v0.2</span>
         <div class="account-nav">
         <?php if ($navUser !== null): ?>
             <a class="account-name" href="/profile.php"<?= $activePath === '/profile.php' ? ' aria-current="page"' : '' ?>><?= e($navUser['username']) ?></a>

@@ -5,10 +5,17 @@ description: A compact HTTP workbench for local security exercises.
 colors:
   background: '#111315'
   surface: '#171a1d'
+  surface-raised: '#1c2024'
   text: '#d8dde3'
   muted: '#a0a8b1'
   primary: '#8eafd0'
   border: '#30363d'
+  danger: '#df9a9a'
+  success: '#a0c1a5'
+  danger-surface: 'rgba(223, 154, 154, 0.08)'
+  danger-border: 'rgba(223, 154, 154, 0.35)'
+  success-surface: 'rgba(160, 193, 165, 0.08)'
+  success-border: 'rgba(160, 193, 165, 0.35)'
 typography:
   sans:
     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
