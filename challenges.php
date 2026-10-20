@@ -30,10 +30,13 @@ require __DIR__ . '/includes/header.php';
         <h1>Challenges</h1>
         <p>Progressive hands-on HTTP and security inspection exercises.</p>
     </div>
-    <div class="progress"><span><?= count($solves) ?> / <?= count($definitions) ?></span> solved</div>
+    <div class="progress-badge">
+        <span class="progress-count"><?= count($solves) ?> / <?= count($definitions) ?></span>
+        <span class="progress-label">Solved</span>
+    </div>
 </section>
 <section aria-label="HTTP exercises">
-    <div class="section-heading"><h2>HTTP fundamentals</h2></div>
+    <div class="section-heading"><h2>HTTP Fundamentals</h2></div>
     <div class="challenge-list">
         <?php $num = 1; foreach ($definitions as $slug => $challenge): ?>
             <?php $isSolved = isset($solves[$slug]); ?>
@@ -45,7 +48,9 @@ require __DIR__ . '/includes/header.php';
                 </div>
                 <div class="challenge-meta">
                     <span class="method"><?= e($challenge['method']) ?></span>
-                    <span class="challenge-status <?= $isSolved ? 'is-solved' : '' ?>"><?= $isSolved ? 'solved' : '' ?></span>
+                    <span class="challenge-status <?= $isSolved ? 'is-solved' : 'is-unsolved' ?>">
+                        <?= $isSolved ? '<span class="status-dot"></span> Solved' : 'Open' ?>
+                    </span>
                 </div>
             </a>
         <?php endforeach; ?>

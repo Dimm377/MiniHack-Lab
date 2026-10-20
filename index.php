@@ -49,6 +49,10 @@ $user = current_user();
         <h2 id="inspector-heading">HTTP Inspector</h2>
     </div>
     <div class="inspector-console">
+        <div class="console-header">
+            <span class="console-title">Live Endpoint Sandbox</span>
+            <span class="live-dot" title="Ready" aria-hidden="true"></span>
+        </div>
         <form id="api-demo-form" novalidate>
             <div class="request-line">
                 <span class="method">GET</span> 
