@@ -8,6 +8,7 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/config/database.php';
 
 $user = require_auth();
+header('Cache-Control: private, no-store, must-revalidate');
 $errors = [];
 $title = '';
 $content = '';
@@ -18,10 +19,10 @@ if (is_post()) {
     if ($action === 'create') {
         $title = trim(request_string($_POST, 'title'));
         $content = trim(request_string($_POST, 'content'));
-        if ($title === '' || strlen($title) > 100) {
+        if ($title === '' || mb_strlen($title, 'UTF-8') > 100) {
             $errors[] = 'Title is required and must be 100 characters or fewer.';
         }
-        if ($content === '' || strlen($content) > 5000) {
+        if ($content === '' || mb_strlen($content, 'UTF-8') > 5000) {
             $errors[] = 'Content is required and must be 5,000 characters or fewer.';
         }
         if ($errors === []) {

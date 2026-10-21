@@ -23,7 +23,14 @@ if (is_post()) {
         $statement = db()->prepare('SELECT id, username, password_hash FROM users WHERE username = :username LIMIT 1');
         $statement->execute(['username' => $username]);
         $user = $statement->fetch();
-        if (!is_array($user) || !password_verify($password, (string) $user['password_hash'])) {
+
+        // Perform password_verify against a dummy hash when the user is not found to prevent timing-based user enumeration.
+        $dummyHash = '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
+        $hashToVerify = is_array($user) ? (string) $user['password_hash'] : $dummyHash;
+        $isValidPassword = password_verify($password, $hashToVerify);
+
+        if (!is_array($user) || !$isValidPassword) {
+            error_log(sprintf('Failed login attempt for username "%s"', $username));
             // The same message is used whether the username or password is wrong.
             $error = 'Invalid username or password.';
         } else {

@@ -23,10 +23,7 @@ if ($challenge === null) {
 }
 
 $expectedFlag = challenge_flag($user['id'], $slug);
-
-if ($slug === 'response-headers' && !is_post()) {
-    header('X-MiniHack-Flag: ' . $expectedFlag);
-}
+challenge_dispatch_delivery($slug, $expectedFlag);
 
 $error = null;
 if (is_post() && isset($_POST['flag'])) {
@@ -50,32 +47,18 @@ if (is_post() && isset($_POST['flag'])) {
     }
 }
 
-if ($slug === 'cookie-state') {
-    $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off';
-    setcookie('minihack_training', $expectedFlag, [
-        'expires' => 0,
-        'path' => '/challenge.php',
-        'secure' => $isHttps,
-        'httponly' => false,
-        'samesite' => 'Lax'
-    ]);
-}
-
 $statement = db()->prepare(
     'SELECT solved_at FROM solves WHERE user_id = :user_id AND challenge_slug = :challenge_slug'
 );
 $statement->execute(['user_id' => $user['id'], 'challenge_slug' => $slug]);
 $solvedAt = $statement->fetchColumn();
 
-$queryUnlocked = $slug === 'query-parameters' && request_string($_GET, 'inspect') === 'request';
-$bodyUnlocked = $slug === 'request-method-body' && is_post() && request_string($_POST, 'inspect') === 'body';
+$isUnlocked = challenge_is_unlocked($slug);
 
 $pageTitle = $challenge['title'];
 require __DIR__ . '/includes/header.php';
 ?>
-<?php if ($slug === 'page-source'): ?>
-<!-- MiniHack challenge flag: <?= e($expectedFlag) ?> -->
-<?php endif; ?>
+<?= challenge_source_comment($slug, $expectedFlag) ?>
 <section class="page-heading">
     <p class="back-link"><a href="/challenges.php">&larr; All challenges</a></p>
     <h1><?= e($challenge['title']) ?></h1>
@@ -86,7 +69,7 @@ require __DIR__ . '/includes/header.php';
         </span>
     </div>
 </section>
-<p class="request-line"><span class="method"><?= e($challenge['method']) ?></span> <code>/challenge.php?slug=<?= e($slug) ?><?= $queryUnlocked ? '&amp;inspect=request' : '' ?></code></p>
+<p class="request-line"><span class="method"><?= e($challenge['method']) ?></span> <code>/challenge.php?slug=<?= e($slug) ?><?= ($slug === 'query-parameters' && $isUnlocked) ? '&amp;inspect=request' : '' ?></code></p>
 <div class="exercise-layout">
 <section class="challenge-task">
     <h2>Objective</h2>
@@ -98,7 +81,7 @@ require __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
     </ol>
 
-    <?php if ($slug === 'query-parameters' || $slug === 'request-method-body'): ?>
+    <?php if (challenge_has_inspection_form($slug)): ?>
     <form method="<?= $slug === 'query-parameters' ? 'get' : 'post' ?>" action="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>" novalidate>
         <input type="hidden" name="slug" value="<?= e($slug) ?>">
         <label for="inspect">Inspection target</label>
@@ -108,7 +91,7 @@ require __DIR__ . '/includes/header.php';
     </form>
     <?php endif; ?>
 
-    <?php if ($queryUnlocked || $bodyUnlocked): ?>
+    <?php if ($isUnlocked): ?>
         <div class="challenge-output">
             <span>Server response</span>
             <code><?= e($expectedFlag) ?></code>

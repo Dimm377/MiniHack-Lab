@@ -8,6 +8,7 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/config/database.php';
 
 $sessionUser = require_auth();
+header('Cache-Control: private, no-store, must-revalidate');
 // The profile ID comes only from the authenticated session, never from the URL.
 $statement = db()->prepare('SELECT id, username, created_at FROM users WHERE id = :id');
 $statement->execute(['id' => $sessionUser['id']]);

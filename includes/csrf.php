@@ -20,6 +20,7 @@ function verify_csrf_or_abort(): void
     $submitted = $_POST['csrf_token'] ?? null;
     $expected = $_SESSION['csrf_token'] ?? null;
     if (!is_string($submitted) || !is_string($expected) || !hash_equals($expected, $submitted)) {
+        error_log(sprintf('CSRF verification failed for %s', $_SERVER['REQUEST_URI'] ?? '/'));
         http_response_code(403);
         echo '<!doctype html><html lang="en"><meta charset="utf-8"><title>Forbidden</title>';
         echo '<body><h1>Forbidden</h1><p>The request could not be verified.</p></body></html>';

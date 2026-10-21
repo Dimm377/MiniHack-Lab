@@ -7,6 +7,8 @@ declare(strict_types=1);
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
 header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header('Cross-Origin-Opener-Policy: same-origin');
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $path = is_string($path) ? rawurldecode($path) : '';
 $pages = [

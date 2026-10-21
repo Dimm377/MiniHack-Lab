@@ -196,3 +196,53 @@ function challenge_flag(int $userId, string $slug): string
     $digest = hash_hmac('sha256', $userId . ':' . $slug, load_instance_secret());
     return 'MHL{' . $definition['phrase'] . '_' . substr($digest, 0, 12) . '}';
 }
+
+/**
+ * Protocol delivery hook for challenges conveying flags via HTTP response mechanics.
+ */
+function challenge_dispatch_delivery(string $slug, string $flag): void
+{
+    if ($slug === 'response-headers' && !is_post()) {
+        header('X-MiniHack-Flag: ' . $flag);
+    } elseif ($slug === 'cookie-state') {
+        $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off';
+        setcookie('minihack_training', $flag, [
+            'expires' => 0,
+            'path' => '/challenge.php',
+            'secure' => $isHttps,
+            'httponly' => false,
+            'samesite' => 'Lax'
+        ]);
+    }
+}
+
+/**
+ * Evaluates whether the request satisfies the dynamic unlock criteria for an interactive challenge.
+ */
+function challenge_is_unlocked(string $slug): bool
+{
+    return match ($slug) {
+        'query-parameters' => request_string($_GET, 'inspect') === 'request',
+        'request-method-body' => is_post() && request_string($_POST, 'inspect') === 'body',
+        default => false,
+    };
+}
+
+/**
+ * Checks whether this challenge provides an inspection workbench form.
+ */
+function challenge_has_inspection_form(string $slug): bool
+{
+    return in_array($slug, ['query-parameters', 'request-method-body'], true);
+}
+
+/**
+ * Returns the HTML comment flag for source inspection challenges.
+ */
+function challenge_source_comment(string $slug, string $flag): ?string
+{
+    if ($slug === 'page-source') {
+        return '<!-- MiniHack challenge flag: ' . e($flag) . ' -->';
+    }
+    return null;
+}

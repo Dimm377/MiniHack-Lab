@@ -24,6 +24,12 @@ function send_security_headers(): void
         header('X-Content-Type-Options: nosniff');
         header('Referrer-Policy: same-origin');
         header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+        header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+        header('Cross-Origin-Opener-Policy: same-origin');
+        $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off';
+        if ($isHttps) {
+            header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+        }
     }
 }
 
