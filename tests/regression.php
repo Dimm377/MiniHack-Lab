@@ -382,7 +382,7 @@ check(!str_contains($guestHome['body'], 'live-dot') && !str_contains($guestHome[
 check(str_contains($guestHome['body'], 'Accounts and sessions'), 'Baseline names the account controls, not the login action');
 check(str_contains($learnedB['body'], 'href="/challenges.php" aria-current="page"'), 'Recap marks Challenges as the current section');
 check(preg_match('/<input id="api-user-id"[^>]*aria-label="User ID"/', $guestHome['body']) === 1
-    && str_contains($guestHome['body'], 'aria-live="polite"') && str_contains($guestHome['body'], 'id="api-headers"'), 'Inspector input is labelled and results are announced');
+    && str_contains($guestHome['body'], 'aria-live="polite"') && str_contains($guestHome['body'], 'id="api-trace"'), 'Inspector input is labelled and results are announced');
 $homeB = get('/', $b['cookie']);
 check(str_contains($homeB['body'], "0 / $total") && str_contains($homeB['body'], 'href="/challenge.php?slug=query-parameters"'), 'Workbench offers the next unsolved challenge');
 $homeA = get('/', $a['cookie']);

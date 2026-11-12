@@ -545,27 +545,22 @@ code {
     background: var(--surface-raised);
 }
 
-#api-status {
-    color: var(--muted);
-    font-size: var(--text-xs);
-    font-variant-numeric: tabular-nums;
-}
-
-.response-metadata {
-    display: grid;
-    grid-template-columns: 115px minmax(0, 1fr);
-    font-size: var(--text-xs);
-    line-height: 1.8;
-    color: var(--muted);
-    gap: 0.2rem 0.6rem;
-    margin-bottom: 1rem;
-}
-
-.response-metadata dd {
+.response-status {
     margin: 0;
-    overflow-wrap: anywhere;
-    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+#api-status {
+    margin-left: var(--space-2);
     color: var(--text);
+    font-family: var(--font-mono); /* taste-skill-ignore */
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 pre {
@@ -575,12 +570,6 @@ pre {
     background: var(--background);
     font-size: var(--text-sm);
     margin: 0;
-}
-
-#api-result {
-    min-height: 90px;
-    white-space: pre;
-    color: var(--text);
 }
 
 /* Challenge List (Clean elevated surface cards without wireframe borders) */
@@ -1332,6 +1321,7 @@ summary:hover {
 .http-trace__detail dd {
     margin: 0;
     overflow-wrap: anywhere;
+    white-space: pre-wrap; /* keeps pretty-printed JSON bodies readable */
 }
 
 .http-trace__masked {

@@ -89,13 +89,8 @@ foreach ($definitions as $slug => $definition) {
             </div>
         </form>
         <div class="response-panel">
-            <dl class="response-metadata">
-                <dt>Status</dt><dd id="api-status" aria-live="polite">—</dd>
-            </dl>
-            <dl id="api-headers" class="response-metadata" aria-label="Response headers">
-                <dt>Headers</dt><dd>—</dd>
-            </dl>
-            <pre id="api-result" tabindex="0" aria-label="JSON response"></pre>
+            <p class="response-status">Status <span id="api-status" aria-live="polite">—</span></p>
+            <div id="api-trace"><p class="hint">Send the request to see the exchange.</p></div>
         </div>
     </div>
     <p class="hint">Scripts can read most response headers, but browsers hide Set-Cookie from them. Compare this view with the same request in your Network panel.</p>
