@@ -405,6 +405,14 @@ foreach ([
 foreach (['/', '/assets/css/style.css', '/assets/js/app.js'] as $path) {
     check(get($path)['status'] === 200, "Public route still works: $path");
 }
+foreach (['plex-sans-400', 'plex-sans-600', 'plex-sans-700', 'jetbrains-mono-400', 'jetbrains-mono-700'] as $font) {
+    $response = get('/assets/fonts/' . $font . '.woff2');
+    check($response['status'] === 200 && ($response['headers']['content-type'] ?? '') === 'font/woff2' && str_starts_with($response['body'], 'wOF2'), "Font is served: $font");
+}
+foreach (['/assets/fonts/OFL-IBM-Plex.txt', '/assets/fonts/other.woff2', '/assets/fonts/', '/assets/fonts/../../database/instance_secret'] as $path) {
+    check(get($path)['status'] === 404, "Font directory stays private: $path");
+}
+check(str_contains(get('/')['body'], '<link rel="preload" href="/assets/fonts/plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>'), 'Body font is preloaded');
 foreach (['minihack.sqlite', 'instance_secret'] as $file) {
     check((fileperms($testDirectory . '/' . $file) & 0777) === 0600, "$file has owner-only permissions");
 }

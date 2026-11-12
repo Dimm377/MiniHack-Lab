@@ -5,5 +5,5 @@ AcceptPathInfo Off
     RewriteEngine On
     RewriteRule "(^|/)\." - [R=404,L]
     # Only these entry points and assets are public. Keep aligned with router.php.
-    RewriteRule "^(?!(?:$|(?:index|login|register|logout|profile|notes|search|challenges|challenge|learned)\.php$|api/users\.php$|assets/css/style\.css$|assets/js/app\.js$))." - [R=404,L]
+    RewriteRule "^(?!(?:$|(?:index|login|register|logout|profile|notes|search|challenges|challenge|learned)\.php$|api/users\.php$|assets/css/style\.css$|assets/js/app\.js$|assets/fonts/(?:plex-sans-(?:400|600|700)|jetbrains-mono-(?:400|700))\.woff2$))." - [R=404,L]
 </IfModule>

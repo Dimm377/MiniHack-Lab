@@ -15,6 +15,7 @@ $navItems = ['/' => 'Workbench', '/challenges.php' => 'Challenges', '/search.php
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> | MiniHack Web Lab</title>
+    <link rel="preload" href="/assets/fonts/plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/assets/css/style.css">
     <script src="/assets/js/app.js" defer></script>
 </head>

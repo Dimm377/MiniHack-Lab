@@ -17,11 +17,20 @@ $pages = [
     '/profile.php', '/notes.php', '/search.php', '/challenges.php',
     '/challenge.php', '/learned.php', '/api/users.php',
 ];
-$assets = ['/assets/css/style.css' => 'text/css', '/assets/js/app.js' => 'text/javascript'];
+// Full Content-Type per asset: text gets a charset, binary fonts must not.
+$assets = [
+    '/assets/css/style.css' => 'text/css; charset=UTF-8',
+    '/assets/js/app.js' => 'text/javascript; charset=UTF-8',
+    '/assets/fonts/plex-sans-400.woff2' => 'font/woff2',
+    '/assets/fonts/plex-sans-600.woff2' => 'font/woff2',
+    '/assets/fonts/plex-sans-700.woff2' => 'font/woff2',
+    '/assets/fonts/jetbrains-mono-400.woff2' => 'font/woff2',
+    '/assets/fonts/jetbrains-mono-700.woff2' => 'font/woff2',
+];
 if (in_array($path, $pages, true)) {
     require __DIR__ . ($path === '/' ? '/index.php' : $path);
 } elseif (isset($assets[$path])) {
-    header('Content-Type: ' . $assets[$path] . '; charset=UTF-8');
+    header('Content-Type: ' . $assets[$path]);
     readfile(__DIR__ . $path);
 } else {
     http_response_code(404);
