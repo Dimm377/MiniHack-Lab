@@ -18,6 +18,7 @@ require_once dirname(__DIR__) . '/config/database.php';
  *     instructions: list<string>,
  *     inspection?: array{method: 'GET'|'POST', value: string},
  *     trigger?: array{label: string, query: string, arrival?: string},
+ *     records?: array<int, array{owner: string, content: string, holds_flag: bool}>,
  *     hints: array{direction: string, concept: string, action: string},
  *     learning: array{
  *         why_it_worked: string,
@@ -185,6 +186,39 @@ function challenge_definitions(): array
                     'One navigation can contain several request/response exchanges.',
                     'Inspect intermediate responses, not only the final page.',
                     'A redirect tells the client where to go; it does not stop the server from sending data.',
+                ],
+            ],
+        ],
+        'object-reference' => [
+            'phrase' => 'ch3ck_wh0_0wns_1t',
+            'title' => 'Someone Else\'s Record',
+            'summary' => 'See whether the server checks who a record belongs to.',
+            'method' => 'GET',
+            'category' => 'Access Control',
+            'objective' => 'Your account can open its own training record. Find out whether the server stops you from opening someone else\'s.',
+            'instructions' => [
+                'Open your record with the link below and read the address.',
+                'Predict what the server checks before it returns a record, then test that prediction.',
+            ],
+            'trigger' => ['label' => 'Your record', 'query' => 'record=1042'],
+            // Synthetic, code-only data: never users, notes or solves. Hyphenated owner cannot be a real username.
+            'records' => [
+                1040 => ['owner' => 'archived', 'content' => 'This record was archived and holds no notes.', 'holds_flag' => false],
+                1041 => ['owner' => 'lab-reviewer', 'content' => 'Review notes for the access-control exercise. Training flag:', 'holds_flag' => true],
+                1042 => ['owner' => 'you', 'content' => 'Your training record. Nothing here yet besides this note.', 'holds_flag' => false],
+            ],
+            'hints' => [
+                'direction' => 'The address names the record. Who decides whether you may see it?',
+                'concept' => 'If a server uses a client-supplied identifier to select data without checking ownership, every reachable ID becomes readable.',
+                'action' => 'Open your record, change the record number in the address to a neighbouring value, and compare the owner.',
+            ],
+            'learning' => [
+                'why_it_worked' => 'The record page selected a record using only the number in the URL. It never compared the record\'s owner with the account in your session, so changing 1042 to 1041 returned lab-reviewer\'s record and the training flag in it. The server let a client-supplied identifier make an access decision.',
+                'real_world_relevance' => 'This is an insecure direct object reference, part of Broken Access Control, the top category in the OWASP Top 10. Sequential IDs make it easy to find, but random IDs such as UUIDs only hide objects: anyone who learns an ID can still use it. The fix is an ownership check on every request. MiniHack\'s private notes do this: the owner comes from your session and the delete query includes AND user_id = :user_id. Send another account\'s note ID there and the server refuses.',
+                'takeaways' => [
+                    'Every object request needs a server-side ownership check.',
+                    'Unguessable IDs hide objects; they do not authorize access.',
+                    'Ownership must come from the session, not the request.',
                 ],
             ],
         ],

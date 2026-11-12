@@ -55,6 +55,8 @@ Shared HTML responses send CSP, <code>X-Content-Type-Options: nosniff</code>, an
 
 <code>learned.php</code> is an authenticated, <code>no-store</code> recap of takeaways for the viewer's own solved challenges. It reuses the solve query, so takeaways of unsolved challenges never appear in it.
 
+The <code>object-reference</code> challenge declares static <code>records</code> in the registry. <code>challenge.php</code> parses <code>record</code> with <code>positive_int()</code> and selects a record by that ID alone, without an ownership check: an intentional access-control flaw confined to synthetic code data. Record 1041 (owner <code>lab-reviewer</code>, a name registration cannot produce) shows the requesting user's flag; unknown or invalid IDs render "Record not found". The flaw never touches users, notes, or solves.
+
 Released slugs are immutable. Renaming one requires an explicit migration of solve records and a decision about compatibility with flags derived from the old slug.
 
 For a known slug and authenticated user, the application computes:

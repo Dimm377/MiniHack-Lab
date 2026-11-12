@@ -65,6 +65,8 @@ The runner creates a unique <code>/tmp/minihack-test-&lt;random&gt;/</code> data
 
 The application is a secure baseline plus intentionally observable learning mechanics. Challenge flags are scoped to an authenticated user, derived from a local instance secret, and exposed only by each challenge's documented behavior. They are not credentials.
 
+The `object-reference` challenge deliberately looks up a record by the ID in the URL without checking its owner, to teach insecure direct object references. That flaw applies only to three static, synthetic records defined in code. It never reads accounts, notes, or solve records, and the baseline's own ownership checks are unchanged and covered by regression tests.
+
 Released challenge slugs are immutable. Renaming one requires an explicit migration because the slug identifies solve records and participates in flag derivation.
 
 See [SECURITY.md](SECURITY.md), [docs/architecture.md](docs/architecture.md), [docs/validation.md](docs/validation.md), and [DESIGN.md](DESIGN.md).
