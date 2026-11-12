@@ -76,9 +76,17 @@ const apiForm = document.getElementById('api-demo-form');
 if (apiForm instanceof HTMLFormElement) {
     const result = document.getElementById('api-result');
     const status = document.getElementById('api-status');
-    const endpoint = document.getElementById('api-endpoint');
-    const metadata = document.querySelectorAll('#api-metadata dd');
+    const headerList = document.getElementById('api-headers');
     const button = apiForm.querySelector('button[type="submit"]');
+    const showHeaders = (entries) => {
+        headerList.replaceChildren(...entries.flatMap(([name, value]) => {
+            const term = document.createElement('dt');
+            const detail = document.createElement('dd');
+            term.textContent = name;
+            detail.textContent = value;
+            return [term, detail];
+        }));
+    };
     let pending = false;
     apiForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -91,9 +99,8 @@ if (apiForm instanceof HTMLFormElement) {
         button.disabled = true;
         apiForm.setAttribute('aria-busy', 'true');
         status.textContent = 'Sending request…';
-        if (endpoint) endpoint.textContent = path;
         result.textContent = 'Waiting for response…';
-        metadata.forEach((item) => { item.textContent = '—'; });
+        showHeaders([['Headers', '—']]);
         try {
             const response = await fetch(path, {
                 headers: { Accept: 'application/json' },
@@ -102,8 +109,7 @@ if (apiForm instanceof HTMLFormElement) {
             });
             const body = await response.json();
             status.textContent = 'HTTP ' + response.status;
-            metadata[0].textContent = response.headers.get('Content-Type') || 'Not set';
-            metadata[1].textContent = response.headers.get('Cache-Control') || 'Not set';
+            showHeaders([...response.headers]);
             result.textContent = JSON.stringify(body, null, 2);
         } catch (error) {
             status.textContent = 'Request failed';

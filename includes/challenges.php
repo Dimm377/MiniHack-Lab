@@ -15,6 +15,7 @@ require_once dirname(__DIR__) . '/config/database.php';
  *     method: string,
  *     objective: string,
  *     instructions: list<string>,
+ *     inspection?: array{method: 'GET'|'POST', value: string},
  *     hints: array{direction: string, concept: string, action: string},
  *     learning: array{
  *         why_it_worked: string,
@@ -36,6 +37,7 @@ function challenge_definitions(): array
                 'Use the inspection form below. Before sending, predict what will change.',
                 'Compare the address and returned page between attempts. Change one thing at a time.',
             ],
+            'inspection' => ['method' => 'GET', 'value' => 'request'],
             'hints' => [
                 'direction' => 'Compare two attempts: what changed on the way to the server, and what changed on the way back?',
                 'concept' => 'A GET form puts named values in the URL query string. The server can read those values when building its response.',
@@ -136,6 +138,7 @@ function challenge_definitions(): array
                 'Try the inspection form and compare its request with a normal page visit.',
                 'Predict where the input travels, then inspect what was sent and returned.',
             ],
+            'inspection' => ['method' => 'POST', 'value' => 'body'],
             'hints' => [
                 'direction' => 'Two requests to the same address need not ask the server to do the same thing.',
                 'concept' => 'A POST form sends named values in the request body. The server can check the method and body separately from the URL query string.',
@@ -221,19 +224,36 @@ function challenge_dispatch_delivery(string $slug, string $flag): void
  */
 function challenge_is_unlocked(string $slug): bool
 {
-    return match ($slug) {
-        'query-parameters' => request_string($_GET, 'inspect') === 'request',
-        'request-method-body' => is_post() && request_string($_POST, 'inspect') === 'body',
-        default => false,
-    };
+    $inspection = challenge_definition($slug)['inspection'] ?? null;
+    if ($inspection === null) {
+        return false;
+    }
+    // A GET challenge reads the query string; a POST challenge reads only a POSTed body.
+    $source = $inspection['method'] === 'POST' ? (is_post() ? $_POST : []) : $_GET;
+    return request_string($source, 'inspect') === $inspection['value'];
 }
 
-/**
- * Checks whether this challenge provides an inspection workbench form.
- */
-function challenge_has_inspection_form(string $slug): bool
+/** @return array<string, string> solved_at keyed by slug, limited to known challenges, for one user. */
+function challenge_solves(int $userId): array
 {
-    return in_array($slug, ['query-parameters', 'request-method-body'], true);
+    $statement = db()->prepare('SELECT challenge_slug, solved_at FROM solves WHERE user_id = :user_id');
+    $statement->execute(['user_id' => $userId]);
+    $definitions = challenge_definitions();
+    $solves = [];
+    foreach ($statement->fetchAll() as $row) {
+        if (is_string($row['challenge_slug']) && isset($definitions[$row['challenge_slug']])) {
+            $solves[$row['challenge_slug']] = (string) $row['solved_at'];
+        }
+    }
+    return $solves;
+}
+
+/** The slug after $slug in registry order, or null for the last challenge. */
+function challenge_next_slug(string $slug): ?string
+{
+    $slugs = array_keys(challenge_definitions());
+    $index = array_search($slug, $slugs, true);
+    return $index === false ? null : ($slugs[$index + 1] ?? null);
 }
 
 /**

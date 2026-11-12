@@ -12,15 +12,7 @@ $user = require_auth();
 $definitions = challenge_definitions();
 header('Cache-Control: no-store');
 
-$statement = db()->prepare('SELECT challenge_slug, solved_at FROM solves WHERE user_id = :user_id');
-$statement->execute(['user_id' => $user['id']]);
-$solvedRows = $statement->fetchAll();
-$solves = [];
-foreach ($solvedRows as $row) {
-    if (is_string($row['challenge_slug']) && isset($definitions[$row['challenge_slug']])) {
-        $solves[$row['challenge_slug']] = (string) $row['solved_at'];
-    }
-}
+$solves = challenge_solves($user['id']);
 
 $pageTitle = 'Challenges';
 require __DIR__ . '/includes/header.php';
@@ -55,6 +47,6 @@ require __DIR__ . '/includes/header.php';
             </a>
         <?php endforeach; ?>
     </div>
-    <p class="hint">Each flag belongs to your account. Repeating a solve keeps the same result.</p>
+    <p class="hint">Each flag belongs to your account. Repeating a solve keeps the same result. <a href="/learned.php">Review what you've learned</a></p>
 </section>
 <?php require __DIR__ . '/includes/footer.php'; ?>
