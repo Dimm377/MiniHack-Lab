@@ -39,7 +39,7 @@ $navItems = ['/' => 'Workbench', '/challenges.php' => 'Challenges', '/search.php
     </div>
     <nav aria-label="Main navigation">
         <?php foreach ($navItems as $path => $label): ?>
-            <a href="<?= e($path) ?>"<?= ($activePath === $path || ($path === '/challenges.php' && $activePath === '/challenge.php')) ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+            <a href="<?= e($path) ?>"<?= ($activePath === $path || ($path === '/challenges.php' && in_array($activePath, ['/challenge.php', '/learned.php'], true))) ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
         <?php endforeach; ?>
     </nav>
 </header>

@@ -68,7 +68,7 @@ foreach ($definitions as $slug => $definition) {
         <dd>Ownership comes from your session, never from IDs you send; stored text is encoded on output.</dd>
         <dt>User API</dt>
         <dd>Explicit JSON status codes, and only public fields leave the server. Try it in the inspector.</dd>
-        <dt><a href="<?= $user === null ? '/login.php' : '/profile.php' ?>"><?= $user === null ? 'Log in' : 'Your profile' ?></a></dt>
+        <dt><a href="<?= $user === null ? '/login.php' : '/profile.php' ?>">Accounts and sessions</a></dt>
         <dd>Generic login errors, password hashing, a new session ID after login and CSRF tokens on every form.</dd>
     </dl>
 </section>
@@ -79,8 +79,7 @@ foreach ($definitions as $slug => $definition) {
     </div>
     <div class="inspector-console">
         <div class="console-header">
-            <span class="console-title">Live Endpoint Sandbox</span>
-            <span class="live-dot" title="Ready" aria-hidden="true"></span>
+            <span class="console-title">Public user API</span>
         </div>
         <form id="api-demo-form" novalidate>
             <div class="request-line">

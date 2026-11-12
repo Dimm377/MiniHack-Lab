@@ -431,14 +431,6 @@ code {
     letter-spacing: 0.08em;
 }
 
-.live-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--success);
-    display: inline-block;
-}
-
 .inspector-console form {
     padding: 1rem 1.25rem;
     margin: 0;
@@ -543,6 +535,8 @@ pre {
 
 .progress-badge {
     display: inline-flex;
+    flex-shrink: 0;
+    white-space: nowrap;
     align-items: center;
     gap: 0.5rem;
     background: var(--surface);
@@ -723,7 +717,6 @@ pre {
 }
 
 .solved-answer {
-    margin-top: 2.5rem;
     padding: 1.5rem;
     background: var(--success-surface);
     border-radius: var(--radius-lg);
@@ -736,10 +729,75 @@ pre {
 }
 
 .solved-answer code {
+    display: inline-block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
     color: var(--success);
     font-size: 1rem;
     font-weight: 600;
     background: var(--background);
+}
+
+.solved-next {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 1.25rem;
+}
+
+.inline-links a.primary-link {
+    background: var(--accent);
+    color: var(--background);
+    font-weight: 700;
+}
+
+.inline-links a.primary-link:hover {
+    background: var(--accent-hover);
+    color: var(--background);
+}
+
+/* Solved state: the explanation leads, the exercise follows below a divider. */
+.solved-layout {
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border); /* taste-skill-ignore */
+}
+
+.solved-layout .learning-content {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.exercise-layout.is-solved {
+    grid-template-columns: minmax(0, 46rem);
+}
+
+.hint-panel {
+    margin-top: 2rem;
+    padding: 1.25rem 1.4rem;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+}
+
+.hint-panel h3 {
+    margin: 0;
+}
+
+.hint-panel > .hint {
+    margin: 0.35rem 0 0.5rem;
+}
+
+.page-heading .challenge-status {
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.page-heading .challenge-status.is-solved {
+    background: var(--success-surface);
+    color: var(--success);
 }
 
 .learning-content {
@@ -755,11 +813,6 @@ pre {
 .learning-content ul {
     max-width: 70ch;
     padding-left: 1.5rem;
-}
-
-.learning-content .inline-links {
-    padding-left: 0;
-    margin-top: 2rem;
 }
 
 .recap-list section + section {
@@ -844,15 +897,15 @@ button:disabled {
     transform: none;
 }
 
-/* Primary Form Action Button (Solid Flat Accent) */
-form > button[type="submit"] {
+/* Primary Form Action Button (Solid Flat Accent). Text-style buttons such as Log out opt out. */
+form > button[type="submit"]:not(.link-button) {
     margin-top: 0.75rem;
     background: var(--accent);
     color: var(--background);
     font-weight: 700;
 }
 
-form > button[type="submit"]:hover {
+form > button[type="submit"]:not(.link-button):hover {
     background: var(--accent-hover);
 }
 
@@ -1129,7 +1182,7 @@ summary:hover {
     }
 
     .page-heading .challenge-status {
-        display: block;
+        display: inline-block;
     }
 
     .catalog-heading {

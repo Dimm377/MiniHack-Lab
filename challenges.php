@@ -51,7 +51,7 @@ require __DIR__ . '/includes/header.php';
                 <div class="challenge-meta">
                     <span class="method"><?= e($challenge['method']) ?></span>
                     <span class="challenge-status <?= $isSolved ? 'is-solved' : 'is-unsolved' ?>">
-                        <?= $isSolved ? '<span class="status-dot"></span> Solved' : 'Open' ?>
+                        <?= $isSolved ? '<span class="status-dot"></span> Solved' : 'Unsolved' ?>
                     </span>
                 </div>
             </a>
