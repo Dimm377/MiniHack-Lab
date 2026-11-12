@@ -69,7 +69,7 @@ The `object-reference` challenge deliberately looks up a record by the ID in the
 
 Released challenge slugs are immutable. Renaming one requires an explicit migration because the slug identifies solve records and participates in flag derivation.
 
-See [SECURITY.md](SECURITY.md), [docs/architecture.md](docs/architecture.md), [docs/validation.md](docs/validation.md), and [DESIGN.md](DESIGN.md).
+See [docs/architecture.md](docs/architecture.md) and [docs/principles.md](docs/principles.md).
 
 ## License
 
