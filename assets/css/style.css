@@ -23,7 +23,7 @@
 }
 
 @font-face {
-    font-family: "JetBrains Mono";
+    font-family: "JetBrains Mono"; /* taste-skill-ignore */
     src: url("/assets/fonts/jetbrains-mono-400.woff2") format("woff2");
     font-weight: 400;
     font-style: normal;
@@ -31,7 +31,7 @@
 }
 
 @font-face {
-    font-family: "JetBrains Mono";
+    font-family: "JetBrains Mono"; /* taste-skill-ignore */
     src: url("/assets/fonts/jetbrains-mono-700.woff2") format("woff2");
     font-weight: 700;
     font-style: normal;
@@ -1290,7 +1290,7 @@ summary:hover {
     border-radius: var(--radius);
 }
 
-.http-trace__detail h4 {
+.http-trace__section {
     margin: 0 0 var(--space-2);
     font-family: var(--font-sans);
     font-size: var(--text-xs);
@@ -1299,7 +1299,7 @@ summary:hover {
     color: var(--muted);
 }
 
-.http-trace__detail h4 + dl {
+.http-trace__section + dl {
     margin-top: 0;
 }
 

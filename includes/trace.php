@@ -42,7 +42,7 @@ function http_trace(string $label, array $exchanges): string
             . ($exchange['note'] !== null ? '<span class="http-trace__note"> · ' . e($exchange['note']) . '</span>' : '')
             . '</summary><div class="http-trace__detail">';
         foreach ($exchange['sections'] as $title => $entries) {
-            $html .= '<h4>' . e($title) . '</h4><dl>';
+            $html .= '<p class="http-trace__section">' . e($title) . '</p><dl>';
             foreach ($entries as $name => $value) {
                 $html .= '<dt>' . e($name) . '</dt><dd>'
                     . ($value instanceof TraceMasked ? '<span class="http-trace__masked">' . e($value->hint) . '</span>' : e($value))

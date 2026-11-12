@@ -102,7 +102,7 @@ if (apiForm instanceof HTMLFormElement) {
             Object.entries(exchange.sections).forEach(([title, entries]) => {
                 const dl = el('dl');
                 Object.entries(entries).forEach(([name, value]) => dl.append(el('dt', '', name), el('dd', '', value)));
-                detail.append(el('h4', '', title), dl);
+                detail.append(el('p', 'http-trace__section', title), dl);
             });
             details.append(summary, detail);
             const row = el('li', 'http-trace__row ' + (isRequest ? 'is-request' : 'is-response'));

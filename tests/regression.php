@@ -428,6 +428,7 @@ if (function_exists('http_trace') && function_exists('trace_masked')) {
     check(str_contains($traceHtml, '&quot;&gt;&lt;script&gt;') && !str_contains($traceHtml, '<script>'), 'Trace encodes untrusted summaries');
     check(str_contains($traceHtml, '<dd><span class="http-trace__masked">your session</span></dd>'), 'Trace renders masked values as chips');
     check(str_contains($traceHtml, '<dt>Location</dt><dd>/y</dd>') && str_contains($traceHtml, ' · hidden hop'), 'Trace renders headers and notes');
+    check(!preg_match('/<h[1-6][ >]/', $traceHtml) && str_contains($traceHtml, '<p class="http-trace__section">Response headers</p>'), 'Trace section titles are not headings, so page heading order stays intact');
     check(str_contains($traceHtml, '<section class="http-trace" aria-label="Test trace">') && str_contains($traceHtml, '<span class="visually-hidden">Request: </span>'), 'Trace is labelled for assistive technology');
 }
 $css = (string) file_get_contents($root . '/assets/css/style.css');
