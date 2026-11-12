@@ -188,6 +188,7 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
     check(substr_count($plain['body'], '<details>') === 3
         && preg_match('/<details>\s*<summary>Hint 1.*?<details>\s*<summary>Hint 2.*?<details>\s*<summary>Hint 3.*?<\/details>\s*<\/details>\s*<\/details>/s', $plain['body']) === 1,
         "$slug hints are collapsed and progressively nested without JavaScript");
+    check(str_contains($plain['body'], 'class="hint-panel"'), "$slug groups its hints in a visible panel");
     check(count($hints) === 3 && count(array_filter($hints, static fn ($hint) => str_contains($plain['body'], htmlspecialchars($hint, ENT_QUOTES, 'UTF-8')))) === 3,
         "$slug renders its own hint content");
     $takeaways = $learning['takeaways'] ?? [];
@@ -331,11 +332,16 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
     }
     $firstTakeaway = htmlspecialchars($takeaways[0], ENT_QUOTES, 'UTF-8');
     check(!str_contains(get('/learned.php', $a['cookie'])['body'], $firstTakeaway), "$slug takeaways stay off the recap until solved");
+    $typo = post($path, ['flag' => 'MHL{typo"><script>x</script>}', 'csrf_token' => $a['csrf']], $a['cookie']);
+    check(str_contains($typo['body'], 'value="MHL{typo&quot;&gt;&lt;script&gt;x&lt;/script&gt;}"') && !str_contains($typo['body'], '<script>x</script>'), "$slug keeps a wrong flag in the input, encoded");
     $valid = post($path, ['flag' => $flagA, 'csrf_token' => $a['csrf'], 'user_id' => $idB], $a['cookie']);
     check($valid['status'] === 303 && count_rows($pdo, 'solves') === $before + 1, 'Valid flag records a solve');
     $duplicate = post($path, ['flag' => $flagA, 'csrf_token' => $a['csrf']], $a['cookie']);
     check($duplicate['status'] === 303 && count_rows($pdo, 'solves') === $before + 1, 'Duplicate solve is idempotent');
     $solved = get($path, $a['cookie']);
+    check(!str_contains($solved['body'], 'name="flag"'), "$slug hides the flag form once solved");
+    check(strpos($solved['body'], 'Why It Worked') < strpos($solved['body'], '<h2>Objective</h2>'), "$slug leads with the explanation once solved");
+    check(!str_contains(post($path, ['flag' => 'MHL{wrong}', 'csrf_token' => $a['csrf']], $a['cookie'])['body'], 'The submitted flag is not correct.'), "$slug shows no contradictory flag error once solved");
     $slugs = array_keys($definitions);
     $next = $slugs[array_search($slug, $slugs, true) + 1] ?? null;
     check(str_contains($solved['body'], 'href="' . ($next === null ? '/learned.php' : '/challenge.php?slug=' . $next) . '"'), "$slug links onward after a solve");
@@ -360,6 +366,8 @@ check(!str_contains(get('/challenge.php?slug=query-parameters&record=1041', $a['
 check((int) $pdo->query('SELECT COUNT(*) FROM solves WHERE user_id = ' . $idB)->fetchColumn() === 0, 'Another user has no recorded progress');
 check(str_contains(get('/challenges.php', $a['cookie'])['body'], "$total / $total") && str_contains(get('/challenges.php', $b['cookie'])['body'], "0 / $total"), 'Catalog progress is isolated');
 $catalog = get('/challenges.php', $a['cookie'])['body'];
+$catalogB = get('/challenges.php', $b['cookie'])['body'];
+check(str_contains($catalogB, 'Unsolved') && !str_contains($catalogB, '>Open<') && !preg_match('/>\s*Open\s*</', $catalogB), 'Catalog uses the same Unsolved/Solved vocabulary as challenge pages');
 check(array_filter($definitions, static fn ($d) => !is_string($d['category'] ?? null) || $d['category'] === '') === [], 'Every challenge declares a category');
 check(substr_count($catalog, '<h2>HTTP Fundamentals</h2>') === 1 && substr_count($catalog, '<h2>Access Control</h2>') === 1, 'Catalog renders each category heading once');
 $learnedB = get('/learned.php', $b['cookie']);
@@ -368,6 +376,9 @@ check($learnedB['status'] === 200 && str_contains($learnedB['headers']['cache-co
 $guestHome = get('/');
 check(str_contains($guestHome['body'], 'How this lab works') && str_contains($guestHome['body'], 'Secure baseline')
     && !str_contains($guestHome['body'], 'challenge-row'), 'Workbench explains the lab and baseline without duplicating the catalog');
+check(!str_contains($guestHome['body'], 'live-dot') && !str_contains($guestHome['body'], 'Live Endpoint Sandbox'), 'Inspector shows no decorative status indicator');
+check(str_contains($guestHome['body'], 'Accounts and sessions'), 'Baseline names the account controls, not the login action');
+check(str_contains($learnedB['body'], 'href="/challenges.php" aria-current="page"'), 'Recap marks Challenges as the current section');
 check(preg_match('/<input id="api-user-id"[^>]*aria-label="User ID"/', $guestHome['body']) === 1
     && str_contains($guestHome['body'], 'aria-live="polite"') && str_contains($guestHome['body'], 'id="api-headers"'), 'Inspector input is labelled and results are announced');
 $homeB = get('/', $b['cookie']);

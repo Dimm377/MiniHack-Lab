@@ -79,7 +79,33 @@ require __DIR__ . '/includes/header.php';
     </div>
 </section>
 <p class="request-line"><span class="method"><?= e($requestMethod) ?></span> <code><?= e(request_string($_SERVER, 'REQUEST_URI')) ?></code></p>
-<div class="exercise-layout">
+<?php if ($solvedAt !== false): ?>
+<div class="exercise-layout solved-layout">
+<section class="learning-content">
+    <h2>Why It Worked</h2>
+    <p><?= e($challenge['learning']['why_it_worked']) ?></p>
+    <h2>Real-World Relevance</h2>
+    <p><?= e($challenge['learning']['real_world_relevance']) ?></p>
+    <h2>What To Remember</h2>
+    <ul>
+        <?php foreach ($challenge['learning']['takeaways'] as $takeaway): ?>
+            <li><?= e($takeaway) ?></li>
+        <?php endforeach; ?>
+    </ul>
+</section>
+<aside class="solved-answer" aria-labelledby="solved-heading">
+    <h2 id="solved-heading">Solved</h2>
+    <code><?= e($expectedFlag) ?></code>
+    <ul class="inline-links solved-next">
+        <?php if ($nextSlug !== null): ?>
+            <li><a class="primary-link" href="/challenge.php?slug=<?= e(rawurlencode($nextSlug)) ?>">Next challenge: <?= e(challenge_definition($nextSlug)['title']) ?> &rarr;</a></li>
+        <?php endif; ?>
+        <li><a<?= $nextSlug === null ? ' class="primary-link"' : '' ?> href="/learned.php">Review what you've learned<?= $nextSlug === null ? ' &rarr;' : '' ?></a></li>
+    </ul>
+</aside>
+</div>
+<?php endif; ?>
+<div class="exercise-layout<?= $solvedAt !== false ? ' is-solved' : '' ?>">
 <section class="challenge-task">
     <h2>Objective</h2>
     <p><?= e($challenge['objective']) ?></p>
@@ -146,7 +172,9 @@ require __DIR__ . '/includes/header.php';
         </div>
     <?php endif; ?>
 
-    <h3>Progressive hints</h3>
+    <section class="hint-panel" aria-labelledby="hints-heading">
+    <h3 id="hints-heading">Progressive hints</h3>
+    <p class="hint">Optional. Each hint opens the next one; none gives the flag away.</p>
     <details>
         <summary>Hint 1 — Direction</summary>
         <p><?= e($challenge['hints']['direction']) ?></p>
@@ -159,8 +187,10 @@ require __DIR__ . '/includes/header.php';
             </details>
         </details>
     </details>
+    </section>
 </section>
 
+<?php if ($solvedAt === false): ?>
 <section class="flag-submit">
     <h2>Submit flag</h2>
     <?php if ($error !== null): ?>
@@ -170,34 +200,10 @@ require __DIR__ . '/includes/header.php';
     <form method="post" action="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>" novalidate>
         <?= csrf_input() ?>
         <label for="flag">Flag</label>
-        <input id="flag" class="flag-input" name="flag" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="MHL{...}"<?= $error !== null ? ' aria-invalid="true" aria-describedby="flag-error"' : '' ?> required>
+        <input id="flag" class="flag-input" name="flag" type="text" maxlength="80" autocomplete="off" spellcheck="false" placeholder="MHL{...}" value="<?= e($error !== null ? $submittedFlag : '') ?>"<?= $error !== null ? ' aria-invalid="true" aria-describedby="flag-error"' : '' ?> required>
         <button type="submit">Submit flag</button>
     </form>
 </section>
-</div>
-<?php if ($solvedAt !== false): ?>
-<div class="solved-answer">
-    <h2>Solved</h2>
-    <code><?= e($expectedFlag) ?></code>
-</div>
-<section class="learning-content">
-    <h2>Why It Worked</h2>
-    <p><?= e($challenge['learning']['why_it_worked']) ?></p>
-    <h2>Real-World Relevance</h2>
-    <p><?= e($challenge['learning']['real_world_relevance']) ?></p>
-    <h2>What To Remember</h2>
-    <ul>
-        <?php foreach ($challenge['learning']['takeaways'] as $takeaway): ?>
-            <li><?= e($takeaway) ?></li>
-        <?php endforeach; ?>
-    </ul>
-    <ul class="inline-links">
-        <?php if ($nextSlug !== null): ?>
-            <li><a href="/challenge.php?slug=<?= e(rawurlencode($nextSlug)) ?>">Next challenge: <?= e(challenge_definition($nextSlug)['title']) ?> &rarr;</a></li>
-        <?php else: ?>
-            <li><a href="/learned.php">Review what you've learned &rarr;</a></li>
-        <?php endif; ?>
-    </ul>
-</section>
 <?php endif; ?>
+</div>
 <?php require __DIR__ . '/includes/footer.php'; ?>
