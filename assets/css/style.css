@@ -565,6 +565,10 @@ pre {
     font-weight: 600;
 }
 
+.challenge-group + .challenge-group {
+    margin-top: 2.5rem;
+}
+
 .challenge-list {
     margin-top: 1rem;
     display: flex;

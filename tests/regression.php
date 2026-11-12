@@ -321,9 +321,13 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
     $otherUser = get($path . '&user_id=' . $idA . '&solved=1', $b['cookie']);
     check(!str_contains($otherUser['body'], 'Real-World Relevance') && !str_contains($otherUser['body'], $flagA), "$slug cannot borrow another user's solved state or flag");
 }
-check(count(array_unique($flags)) === 5, 'Each challenge uses a distinct flag');
+$total = count($definitions);
+check(count(array_unique($flags)) === $total, 'Each challenge uses a distinct flag');
 check((int) $pdo->query('SELECT COUNT(*) FROM solves WHERE user_id = ' . $idB)->fetchColumn() === 0, 'Another user has no recorded progress');
-check(str_contains(get('/challenges.php', $a['cookie'])['body'], '5 / 5') && str_contains(get('/challenges.php', $b['cookie'])['body'], '0 / 5'), 'Catalog progress is isolated');
+check(str_contains(get('/challenges.php', $a['cookie'])['body'], "$total / $total") && str_contains(get('/challenges.php', $b['cookie'])['body'], "0 / $total"), 'Catalog progress is isolated');
+$catalog = get('/challenges.php', $a['cookie'])['body'];
+check(array_filter($definitions, static fn ($d) => !is_string($d['category'] ?? null) || $d['category'] === '') === [], 'Every challenge declares a category');
+check(substr_count($catalog, '<h2>HTTP Fundamentals</h2>') === 1, 'Catalog renders each category heading once');
 $learnedB = get('/learned.php', $b['cookie']);
 $anyTakeaway = static fn (string $body): bool => array_filter($definitions, static fn ($d) => str_contains($body, htmlspecialchars($d['learning']['takeaways'][0], ENT_QUOTES, 'UTF-8'))) !== [];
 check($learnedB['status'] === 200 && str_contains($learnedB['headers']['cache-control'] ?? '', 'no-store') && !$anyTakeaway($learnedB['body']), 'Recap shows only the viewer\'s own solves');
@@ -333,9 +337,9 @@ check(str_contains($guestHome['body'], 'How this lab works') && str_contains($gu
 check(preg_match('/<input id="api-user-id"[^>]*aria-label="User ID"/', $guestHome['body']) === 1
     && str_contains($guestHome['body'], 'aria-live="polite"') && str_contains($guestHome['body'], 'id="api-headers"'), 'Inspector input is labelled and results are announced');
 $homeB = get('/', $b['cookie']);
-check(str_contains($homeB['body'], '0 / 5') && str_contains($homeB['body'], 'href="/challenge.php?slug=query-parameters"'), 'Workbench offers the next unsolved challenge');
+check(str_contains($homeB['body'], "0 / $total") && str_contains($homeB['body'], 'href="/challenge.php?slug=query-parameters"'), 'Workbench offers the next unsolved challenge');
 $homeA = get('/', $a['cookie']);
-check(str_contains($homeA['body'], '5 / 5') && str_contains($homeA['body'], 'href="/learned.php"'), 'Workbench links a finished learner to the recap');
+check(str_contains($homeA['body'], "$total / $total") && str_contains($homeA['body'], 'href="/learned.php"'), 'Workbench links a finished learner to the recap');
 check(get('/challenge.php?slug=unknown', $a['cookie'])['status'] === 404, 'Unknown challenge returns 404');
 check(get('/challenge.php?slug[]=page-source', $a['cookie'])['status'] === 404, 'Array challenge slug returns 404');
 

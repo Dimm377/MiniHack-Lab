@@ -13,6 +13,7 @@ require_once dirname(__DIR__) . '/config/database.php';
  *     title: string,
  *     summary: string,
  *     method: string,
+ *     category: string,
  *     objective: string,
  *     instructions: list<string>,
  *     inspection?: array{method: 'GET'|'POST', value: string},
@@ -32,6 +33,7 @@ function challenge_definitions(): array
             'title' => 'What\'s in the URL?',
             'summary' => 'Compare how the same page responds to different inputs.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'This page accepts an inspection target. Find an input that changes its response and recover the training flag.',
             'instructions' => [
                 'Use the inspection form below. Before sending, predict what will change.',
@@ -58,6 +60,7 @@ function challenge_definitions(): array
             'title' => 'Check the Fine Print',
             'summary' => 'Compare a page visit with the exchange that delivered it.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'Loading this challenge returns a training flag to your browser. Recover it by investigating the exchange for this page.',
             'instructions' => [
                 'Reload the page while observing its request in browser developer tools.',
@@ -83,6 +86,7 @@ function challenge_definitions(): array
             'title' => 'Behind the Curtain',
             'summary' => 'Compare what a browser receives with what it displays.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'This page arrives with a training flag, but the visible content is only part of the evidence. Recover the flag from what your browser received.',
             'instructions' => [
                 'Load the challenge and compare the delivered document with the visible page.',
@@ -108,6 +112,7 @@ function challenge_definitions(): array
             'title' => 'Crumbs Left Behind',
             'summary' => 'Observe what a page visit leaves in the browser.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'Visiting this challenge leaves training state in your browser. Find what the visit leaves behind and recover the training flag.',
             'instructions' => [
                 'Observe the browser state for this site, then load the challenge again.',
@@ -133,6 +138,7 @@ function challenge_definitions(): array
             'title' => 'Say It Properly',
             'summary' => 'Compare a page visit with data sent from a form.',
             'method' => 'POST',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'This challenge accepts inspection attempts as well as page visits. Find an attempt that changes the server response and recover the training flag.',
             'instructions' => [
                 'Try the inspection form and compare its request with a normal page visit.',
