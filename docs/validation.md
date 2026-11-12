@@ -18,7 +18,7 @@ git diff --check
 node <design-taste-frontend>/scripts/lint.mjs <changed UI files> --app
 ~~~
 
-The regression suite reported **693 passed; 0 failed**. It covered:
+The regression suite reported **695 passed; 0 failed**. It covered:
 
 - isolated, idempotent database/secret initialization and <code>0600</code> permissions;
 - developer runtime fingerprint unchanged before and after the complete suite;
@@ -37,7 +37,7 @@ The regression suite reported **693 passed; 0 failed**. It covered:
 - Workbench onboarding, secure-baseline section, no duplicated catalog, start/continue link, finished-learner recap link, and inspector labelling and live region markup;
 - CSP, nosniff, referrer policy, challenge/API caching, and HTTPS/local cookie settings;
 - no <code>X-Powered-By</code> header on pages, the API, static assets, router 404s, and 405 responses;
-- redirect challenge: <code>go=archive</code> answers 303 to the arrival page with the per-user flag only in uncached redirect headers; the arrival page, other <code>go</code> values, array input, and POST requests carry no flag and are not redirected;
+- redirect challenge: <code>go=archive</code> answers 303 to the arrival page with the per-user flag only in uncached redirect headers; the arrival page, other <code>go</code> values, array input, and POST requests carry no flag and are not redirected, and guest requests with <code>go=archive</code> or <code>record=1041</code> go to login without a flag;
 - object-reference challenge: record 1042 has no flag, record 1041 shows the requesting user's flag, unknown, zero, negative, leading-zero, non-numeric, and array IDs render "Record not found" without errors, and records never appear on other challenges;
 - every challenge declares a category, the catalog renders each category heading once, and progress counts follow the registry;
 - private repository paths, hidden files, tests, patch/debug files, path-info, traversal/encoding variants, and instance-secret non-disclosure;

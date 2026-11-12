@@ -266,7 +266,10 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         foreach (['&go=elsewhere', '&go[]=archive'] as $query) {
             check(!isset(get($path . $query, $a['cookie'])['headers']['x-minihack-flag']), "Redirect requires go=archive exactly: $query");
         }
-        check(post($path . '&go=archive', ['flag' => 'MHL{invalid}', 'csrf_token' => $a['csrf']], $a['cookie'])['status'] === 200, 'POST with go=archive is not redirected');
+        $postGo = post($path . '&go=archive', ['flag' => 'MHL{invalid}', 'csrf_token' => $a['csrf']], $a['cookie']);
+        check($postGo['status'] === 200 && !isset($postGo['headers']['x-minihack-flag']), 'POST with go=archive is not redirected and carries no flag');
+        $guestGo = get($path . '&go=archive');
+        check($guestGo['status'] === 303 && ($guestGo['headers']['location'] ?? '') === '/login.php' && !isset($guestGo['headers']['x-minihack-flag']), 'Guest archive request goes to login without a flag');
         check(str_contains($plain['body'], 'href="/challenge.php?slug=redirect-response&amp;go=archive"'), 'Challenge page links to the archive');
     } elseif ($slug === 'object-reference') {
         preg_match('/(MHL\{[a-z0-9_]+_[a-f0-9]{12}\})/', $responseA['body'], $matchA);
@@ -274,6 +277,8 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $flagA = $matchA[1] ?? '';
         $flagB = $matchB[1] ?? '';
         check(str_contains($responseA['body'], 'lab-reviewer'), 'Record 1041 belongs to lab-reviewer');
+        $guestRecord = get($path . '&record=1041');
+        check($guestRecord['status'] === 303 && ($guestRecord['headers']['location'] ?? '') === '/login.php' && !str_contains($guestRecord['body'], 'MHL{'), 'Guest record request goes to login without a flag');
         $own = get($path . '&record=1042', $a['cookie']);
         check($own['status'] === 200 && str_contains($own['body'], 'Record #1042') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $own['body']), 'Own record has no flag');
         foreach (['record=9999', 'record=abc', 'record=01041', 'record=0', 'record=-1', 'record[]=1041'] as $query) {
