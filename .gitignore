@@ -1,3 +1,4 @@
+# Runtime data (created by scripts/init_db.php)
 /database/*.db
 /database/*.sqlite
 /database/*.sqlite3
@@ -12,13 +13,26 @@
 /database/*.sqlite3-wal
 /database/instance_secret
 
+# Secrets and logs
 .env
 .env.*
-
 *.log
 
+# OS and editor files
 .DS_Store
 Thumbs.db
-CLAUDE.md
 .idea/
 .vscode/
+
+# AI agent configuration and workflow artifacts (kept locally)
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+.claude/
+.superpowers/
+/docs/superpowers/
+
+# Local-only documents
+/DESIGN.md
+/SECURITY.md
+/docs/validation.md
