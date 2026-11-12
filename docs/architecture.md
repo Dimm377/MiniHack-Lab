@@ -17,7 +17,7 @@ The secure application baseline and educational challenge mechanics share focuse
 
 Root PHP entry points render pages; <code>api/users.php</code> returns JSON. <code>includes/</code> owns shared sessions, authentication, CSRF, rendering helpers, and the challenge registry. <code>config/</code> owns the SQLite path and connection. <code>scripts/init_db.php</code> is CLI-only. <code>assets/</code> contains native CSS and JavaScript. <code>docs/</code> contains maintained project documentation.
 
-The PHP development <code>router.php</code> is a public-resource allowlist. It serves only known page/API entry points and the two application assets. Everything else returns a plain 404. The Apache <code>.htaccess</code> mirrors that public set and also disables indexes, MultiViews, and path-info routing.
+The PHP development <code>router.php</code> is a public-resource allowlist. It serves only known page/API entry points and a fixed list of assets: the stylesheet, the script and the five font files. Each asset carries its full <code>Content-Type</code>; text assets declare UTF-8, fonts are sent as <code>font/woff2</code>. Everything else returns a plain 404. The Apache <code>.htaccess</code> mirrors that public set and also disables indexes, MultiViews, and path-info routing.
 
 ## Data paths and initialization
 
@@ -46,6 +46,12 @@ HTML entry points encode untrusted values with <code>htmlspecialchars()</code>. 
 <code>GET /api/users.php?id=&lt;positive integer&gt;</code> returns only <code>id</code> and <code>username</code>. It returns JSON for 200, 400, 404, 405, and 500 outcomes, sets <code>Cache-Control: no-store</code>, and hides PDO errors, filesystem paths, and private fields.
 
 Shared HTML responses send CSP, <code>X-Content-Type-Options: nosniff</code>, and <code>Referrer-Policy: same-origin</code>. Because <code>expose_php</code> is a <code>php.ini</code> setting, the router, shared page bootstrap, and API each remove <code>X-Powered-By</code> so responses do not disclose the PHP version. Exceptions are logged server-side and rendered as a generic 500 page.
+
+## Typography and the HTTP trace
+
+IBM Plex Sans (prose and controls) and JetBrains Mono (HTTP data, code and flags) are self-hosted as <code>.woff2</code> files in <code>assets/fonts/</code>, served through the same allowlist as the other assets, with their OFL licences beside them. Plex uses IBM's official Latin subset unmodified because its licence reserves the font name; JetBrains Mono is subset locally. Font sizes and spacing come from tokens in <code>:root</code> of <code>assets/css/style.css</code>; the colour palette is unchanged.
+
+<code>includes/trace.php</code> renders request/response exchanges as an HTTP trace: a timeline of native <code>&lt;details&gt;</code> rows that expand into headers, fields and bodies, encoding every string itself. Values a challenge hides are passed as <code>trace_masked()</code> and render as a hint chip, never as the value. The "Server received" panel and the object-reference record card use it on the server; the Workbench inspector builds the same markup in <code>assets/js/app.js</code> with <code>textContent</code> only. A trace that would reveal an unsolved challenge's mechanism (such as the redirect hop) belongs only in post-solve content.
 
 ## Challenge registry and flags
 

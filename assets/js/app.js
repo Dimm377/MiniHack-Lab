@@ -74,18 +74,43 @@ if (searchForm && clearSearch) {
 
 const apiForm = document.getElementById('api-demo-form');
 if (apiForm instanceof HTMLFormElement) {
-    const result = document.getElementById('api-result');
     const status = document.getElementById('api-status');
-    const headerList = document.getElementById('api-headers');
+    const traceEl = document.getElementById('api-trace');
     const button = apiForm.querySelector('button[type="submit"]');
-    const showHeaders = (entries) => {
-        headerList.replaceChildren(...entries.flatMap(([name, value]) => {
-            const term = document.createElement('dt');
-            const detail = document.createElement('dd');
-            term.textContent = name;
-            detail.textContent = value;
-            return [term, detail];
-        }));
+    const el = (tag, className, text) => {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+    };
+    // Mirrors http_trace() in includes/trace.php; text only, never innerHTML.
+    const renderTrace = (container, label, exchanges) => {
+        const section = el('section', 'http-trace');
+        section.setAttribute('aria-label', label);
+        const list = el('ol');
+        exchanges.forEach((exchange) => {
+            const isRequest = exchange.direction === 'request';
+            const details = el('details');
+            details.open = exchange.open;
+            const summary = el('summary');
+            const arrow = el('span', 'http-trace__dir', isRequest ? '→' : '←');
+            arrow.setAttribute('aria-hidden', 'true');
+            summary.append(arrow, el('span', 'visually-hidden', isRequest ? 'Request: ' : 'Response: '),
+                el('b', '', String(exchange.summary[0])), ' ' + exchange.summary[1]);
+            if (exchange.note) summary.append(el('span', 'http-trace__note', ' · ' + exchange.note));
+            const detail = el('div', 'http-trace__detail');
+            Object.entries(exchange.sections).forEach(([title, entries]) => {
+                const dl = el('dl');
+                Object.entries(entries).forEach(([name, value]) => dl.append(el('dt', '', name), el('dd', '', value)));
+                detail.append(el('p', 'http-trace__section', title), dl);
+            });
+            details.append(summary, detail);
+            const row = el('li', 'http-trace__row ' + (isRequest ? 'is-request' : 'is-response'));
+            row.append(details);
+            list.append(row);
+        });
+        section.append(el('p', 'http-trace__label', label), list);
+        container.replaceChildren(section);
     };
     let pending = false;
     apiForm.addEventListener('submit', async (event) => {
@@ -99,8 +124,10 @@ if (apiForm instanceof HTMLFormElement) {
         button.disabled = true;
         apiForm.setAttribute('aria-busy', 'true');
         status.textContent = 'Sending request…';
-        result.textContent = 'Waiting for response…';
-        showHeaders([['Headers', '—']]);
+        const request = {
+            direction: 'request', summary: ['GET', path], note: null, open: false,
+            sections: { 'Request headers': { Accept: 'application/json' } },
+        };
         try {
             const response = await fetch(path, {
                 headers: { Accept: 'application/json' },
@@ -109,13 +136,21 @@ if (apiForm instanceof HTMLFormElement) {
             });
             const body = await response.json();
             status.textContent = 'HTTP ' + response.status;
-            showHeaders([...response.headers]);
-            result.textContent = JSON.stringify(body, null, 2);
+            renderTrace(traceEl, 'Inspector', [request, {
+                direction: 'response', summary: [response.status, response.statusText], note: null, open: true,
+                sections: {
+                    'Response headers': Object.fromEntries(response.headers),
+                    Body: { JSON: JSON.stringify(body, null, 2) },
+                },
+            }]);
         } catch (error) {
             status.textContent = 'Request failed';
-            result.textContent = error.name === 'AbortError'
-                ? 'The request timed out. Send it again to retry.'
-                : 'Could not read the response. Check the local server and send the request again.';
+            renderTrace(traceEl, 'Inspector', [request, {
+                direction: 'response', summary: ['No response', ''], open: true, sections: {},
+                note: error.name === 'AbortError'
+                    ? 'The request timed out. Send it again to retry.'
+                    : 'Could not read the response. Check the local server and send the request again.',
+            }]);
         } finally {
             clearTimeout(timeout);
             pending = false;

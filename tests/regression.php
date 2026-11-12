@@ -220,6 +220,7 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $locked = get($path . '&inspect=' . ($method === 'get' ? 'page' : 'body'), $a['cookie']);
         check(str_contains($locked['body'], 'Server received') && str_contains($locked['body'], 'Locked')
             && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $locked['body']), "$slug echoes a locked experiment without a flag");
+        check(str_contains($locked['body'], 'class="http-trace"') && substr_count($locked['body'], 'http-trace__row') === 2, "$slug shows the experiment as a request/response trace");
         if ($method === 'post') {
             check(str_contains($locked['body'], '<dt>Query inspect</dt><dd>&quot;body&quot;</dd>')
                 && str_contains($locked['body'], '<dt>Body inspect</dt><dd>not sent</dd>'), 'Body challenge shows a query value is not a body value');
@@ -282,6 +283,8 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         check($guestRecord['status'] === 303 && ($guestRecord['headers']['location'] ?? '') === '/login.php' && !str_contains($guestRecord['body'], 'MHL{'), 'Guest record request goes to login without a flag');
         $own = get($path . '&record=1042', $a['cookie']);
         check($own['status'] === 200 && str_contains($own['body'], 'Record #1042') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $own['body']), 'Own record has no flag');
+        check(str_contains($own['body'], 'class="http-trace"') && str_contains($own['body'], '<b>200</b> OK'), 'Record lookup is shown as a trace');
+        check(str_contains(post($path . '&record=1042', [], $a['cookie'])['body'], '<b>POST</b> /challenge.php?slug=object-reference&amp;record=1042'), 'Record trace states the actual request method');
         foreach (['record=9999', 'record=abc', 'record=01041', 'record=0', 'record=-1', 'record[]=1041'] as $query) {
             $missing = get($path . '&' . $query, $a['cookie']);
             check($missing['status'] === 200 && str_contains($missing['body'], 'Record not found') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $missing['body']), "Unknown record is not found: $query");
@@ -380,7 +383,7 @@ check(!str_contains($guestHome['body'], 'live-dot') && !str_contains($guestHome[
 check(str_contains($guestHome['body'], 'Accounts and sessions'), 'Baseline names the account controls, not the login action');
 check(str_contains($learnedB['body'], 'href="/challenges.php" aria-current="page"'), 'Recap marks Challenges as the current section');
 check(preg_match('/<input id="api-user-id"[^>]*aria-label="User ID"/', $guestHome['body']) === 1
-    && str_contains($guestHome['body'], 'aria-live="polite"') && str_contains($guestHome['body'], 'id="api-headers"'), 'Inspector input is labelled and results are announced');
+    && str_contains($guestHome['body'], 'aria-live="polite"') && str_contains($guestHome['body'], 'id="api-trace"'), 'Inspector input is labelled and results are announced');
 $homeB = get('/', $b['cookie']);
 check(str_contains($homeB['body'], "0 / $total") && str_contains($homeB['body'], 'href="/challenge.php?slug=query-parameters"'), 'Workbench offers the next unsolved challenge');
 $homeA = get('/', $a['cookie']);
@@ -405,6 +408,37 @@ foreach ([
 foreach (['/', '/assets/css/style.css', '/assets/js/app.js'] as $path) {
     check(get($path)['status'] === 200, "Public route still works: $path");
 }
+foreach (['plex-sans-400', 'plex-sans-600', 'plex-sans-700', 'jetbrains-mono-400', 'jetbrains-mono-700'] as $font) {
+    $response = get('/assets/fonts/' . $font . '.woff2');
+    check($response['status'] === 200 && ($response['headers']['content-type'] ?? '') === 'font/woff2' && str_starts_with($response['body'], 'wOF2'), "Font is served: $font");
+}
+foreach (['/assets/fonts/OFL-IBM-Plex.txt', '/assets/fonts/other.woff2', '/assets/fonts/', '/assets/fonts/../../database/instance_secret'] as $path) {
+    check(get($path)['status'] === 404, "Font directory stays private: $path");
+}
+check(str_contains(get('/')['body'], '<link rel="preload" href="/assets/fonts/plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>'), 'Body font is preloaded');
+if (is_file($root . '/includes/trace.php')) {
+    require_once $root . '/includes/trace.php';
+}
+check(function_exists('http_trace') && function_exists('trace_masked'), 'Trace helper is available');
+if (function_exists('http_trace') && function_exists('trace_masked')) {
+    $traceHtml = http_trace('Test trace', [
+        ['direction' => 'request', 'summary' => ['GET', '/x?a="><script>'], 'note' => null, 'sections' => ['Request headers' => ['Cookie' => trace_masked('your session')]], 'open' => false],
+        ['direction' => 'response', 'summary' => [303, 'See Other'], 'note' => 'hidden hop', 'sections' => ['Response headers' => ['Location' => '/y']], 'open' => true],
+    ]);
+    check(substr_count($traceHtml, '<details') === 2 && str_contains($traceHtml, '<details open>'), 'Trace renders one details element per exchange');
+    check(str_contains($traceHtml, '&quot;&gt;&lt;script&gt;') && !str_contains($traceHtml, '<script>'), 'Trace encodes untrusted summaries');
+    check(str_contains($traceHtml, '<dd><span class="http-trace__masked">your session</span></dd>'), 'Trace renders masked values as chips');
+    check(str_contains($traceHtml, '<dt>Location</dt><dd>/y</dd>') && str_contains($traceHtml, ' · hidden hop'), 'Trace renders headers and notes');
+    check(!preg_match('/<h[1-6][ >]/', $traceHtml) && str_contains($traceHtml, '<p class="http-trace__section">Response headers</p>'), 'Trace section titles are not headings, so page heading order stays intact');
+    check(str_contains($traceHtml, '<section class="http-trace" aria-label="Test trace">') && str_contains($traceHtml, '<span class="visually-hidden">Request: </span>'), 'Trace is labelled for assistive technology');
+}
+$css = (string) file_get_contents($root . '/assets/css/style.css');
+foreach ([['IBM Plex Sans', '400'], ['IBM Plex Sans', '600'], ['IBM Plex Sans', '700'], ['JetBrains Mono', '400'], ['JetBrains Mono', '700']] as [$family, $weight]) {
+    check(preg_match('/@font-face\s*\{[^}]*font-family:\s*"' . $family . '";[^}]*font-weight:\s*' . $weight . ';[^}]*font-display:\s*swap;/s', $css) === 1, "@font-face declares $family $weight with swap");
+}
+check(preg_match('/--font-sans:\s*"IBM Plex Sans",[^;]*system-ui/', $css) === 1 && preg_match('/--font-mono:\s*"JetBrains Mono",[^;]*ui-monospace/', $css) === 1, 'Font stacks keep system fallbacks');
+$cssOutsideRoot = preg_replace('/:root\s*\{[^}]*\}/s', '', $css, 1);
+check(preg_match('/font-size:\s*[0-9.]+(rem|px)|\bfont:\s*[0-9]/', (string) $cssOutsideRoot) === 0, 'Font sizes come from type tokens');
 foreach (['minihack.sqlite', 'instance_secret'] as $file) {
     check((fileperms($testDirectory . '/' . $file) & 0777) === 0600, "$file has owner-only permissions");
 }
