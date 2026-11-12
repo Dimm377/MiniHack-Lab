@@ -169,10 +169,11 @@ $releasedPhrases = [
     'page-source' => 'v13w_s0urc3_n3v3r_l13s',
     'cookie-state' => 'c00k13s_r3m3mb3r',
     'request-method-body' => 'us3_th3_r1ght_m3th0d',
+    'redirect-response' => 'r3d1r3cts_t4k3_a_d3t0ur',
 ];
 $definitions = challenge_definitions();
 check(array_keys($definitions) === array_keys($releasedPhrases), 'Released challenge slugs remain unchanged');
-foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state', 'request-method-body'] as $slug) {
+foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state', 'request-method-body', 'redirect-response'] as $slug) {
     $path = '/challenge.php?slug=' . $slug;
     $plain = get($path, $a['cookie']);
     $definition = $definitions[$slug];
@@ -233,8 +234,9 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $responseB = post($path, ['inspect' => 'body'], $b['cookie']);
         check(count_rows($pdo, 'solves') === $solvesBeforeExploration, 'Exploration POST does not mutate solve state');
     } else {
-        $responseA = get($path . ($slug === 'query-parameters' ? '&inspect=request' : ''), $a['cookie']);
-        $responseB = get($path . ($slug === 'query-parameters' ? '&inspect=request' : ''), $b['cookie']);
+        $discovery = ['query-parameters' => '&inspect=request', 'redirect-response' => '&go=archive'][$slug] ?? '';
+        $responseA = get($path . $discovery, $a['cookie']);
+        $responseB = get($path . $discovery, $b['cookie']);
     }
     
     if (in_array($slug, ['query-parameters', 'request-method-body'], true)) {
@@ -253,6 +255,18 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $flagA = $matchA[1] ?? '';
         $flagB = $matchB[1] ?? '';
         check($flagA !== '', 'Cookie state flag is in set-cookie header');
+    } elseif ($slug === 'redirect-response') {
+        $flagA = $responseA['headers']['x-minihack-flag'] ?? '';
+        $flagB = $responseB['headers']['x-minihack-flag'] ?? '';
+        check($responseA['status'] === 303 && ($responseA['headers']['location'] ?? '') === '/challenge.php?slug=redirect-response&arrived=1', 'Archive link answers with a 303 to the arrival page');
+        check($flagA !== '' && !str_contains($responseA['body'], $flagA) && str_contains($responseA['headers']['cache-control'] ?? '', 'no-store'), 'Redirect flag is only in the uncached 303 headers');
+        $arrived = get($path . '&arrived=1', $a['cookie']);
+        check(str_contains($arrived['body'], 'What happened on the way?') && !str_contains($arrived['body'], $flagA) && !isset($arrived['headers']['x-minihack-flag']), 'Arrival page shows no flag');
+        foreach (['&go=elsewhere', '&go[]=archive'] as $query) {
+            check(!isset(get($path . $query, $a['cookie'])['headers']['x-minihack-flag']), "Redirect requires go=archive exactly: $query");
+        }
+        check(post($path . '&go=archive', ['flag' => 'MHL{invalid}', 'csrf_token' => $a['csrf']], $a['cookie'])['status'] === 200, 'POST with go=archive is not redirected');
+        check(str_contains($plain['body'], 'href="/challenge.php?slug=redirect-response&amp;go=archive"'), 'Challenge page links to the archive');
     } else {
         $pattern = $slug === 'page-source' ? '/<!-- MiniHack challenge flag: (MHL\{[a-z0-9_]+_[a-f0-9]{12}\}) -->/' : '/(MHL\{[a-z0-9_]+_[a-f0-9]{12}\})/';
         preg_match($pattern, $responseA['body'], $matchA);

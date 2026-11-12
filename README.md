@@ -8,7 +8,7 @@ MiniHack Web Lab v0.2
 └── educational HTTP/security challenges
 ~~~
 
-The baseline demonstrates defensive registration, authentication, authorization, private notes, public search, and a JSON API. The challenge area asks an authenticated user to recover per-user flags from query behavior, response headers, and page source without weakening the baseline.
+The baseline demonstrates defensive registration, authentication, authorization, private notes, public search, and a JSON API. The challenge area asks an authenticated user to recover per-user flags from query behavior, response headers, page source, cookies, request bodies, and redirects without weakening the baseline.
 
 ## Stack and support
 
@@ -49,7 +49,7 @@ For Apache, point the document root at this repository, enable PHP and <code>mod
 - User search: literal LIKE matching with percent, underscore, quotes, and backslashes
 - Notes: server-derived ownership and encoded stored content
 - User API: explicit JSON status codes and public fields only
-- Challenges: query parameters, response headers, page source, and per-user solves
+- Challenges: query parameters, response headers, page source, cookies, request methods and bodies, redirects, and per-user solves
 
 Run the isolated regression suite:
 

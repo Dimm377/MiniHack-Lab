@@ -90,6 +90,18 @@ require __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
     </ol>
 
+    <?php if (isset($challenge['trigger'])): ?>
+        <ul class="inline-links">
+            <li><a href="<?= e('/challenge.php?slug=' . rawurlencode($slug) . '&' . $challenge['trigger']['query']) ?>"><?= e($challenge['trigger']['label']) ?></a></li>
+        </ul>
+        <?php if (isset($challenge['trigger']['arrival']) && request_string($_GET, 'arrived') === '1'): ?>
+            <div class="challenge-output">
+                <span>Page response</span>
+                <p><?= e($challenge['trigger']['arrival']) ?></p>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
     <?php if ($inspection !== null): ?>
     <form method="<?= e(strtolower($inspection['method'])) ?>" action="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>" novalidate>
         <input type="hidden" name="slug" value="<?= e($slug) ?>">

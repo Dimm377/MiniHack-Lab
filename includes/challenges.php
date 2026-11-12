@@ -17,6 +17,7 @@ require_once dirname(__DIR__) . '/config/database.php';
  *     objective: string,
  *     instructions: list<string>,
  *     inspection?: array{method: 'GET'|'POST', value: string},
+ *     trigger?: array{label: string, query: string, arrival?: string},
  *     hints: array{direction: string, concept: string, action: string},
  *     learning: array{
  *         why_it_worked: string,
@@ -160,6 +161,33 @@ function challenge_definitions(): array
                 ],
             ],
         ],
+        'redirect-response' => [
+            'phrase' => 'r3d1r3cts_t4k3_a_d3t0ur',
+            'title' => 'Lost in Transit',
+            'summary' => 'Compare one click with the exchanges it actually caused.',
+            'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
+            'objective' => 'Opening the archive delivers a training flag, but it never appears on screen. Find the exchange that carried it.',
+            'instructions' => [
+                'Open the archive with the link below and note where you end up.',
+                'Compare what you clicked with the requests your browser actually made.',
+            ],
+            'trigger' => ['label' => 'Open the archive', 'query' => 'go=archive', 'arrival' => 'You arrived. What happened on the way?'],
+            'hints' => [
+                'direction' => 'One click. How many responses?',
+                'concept' => 'A 3xx status with a Location header makes the browser send a new request automatically; only the final response is rendered.',
+                'action' => 'Enable Preserve log in the Network panel, open the archive again, and select the 303 entry.',
+            ],
+            'learning' => [
+                'why_it_worked' => 'Opening the archive sent a GET with go=archive. The server answered with a 303 See Other status, a Location header pointing to the arrival page, and the training flag in an X-MiniHack-Flag header. The browser followed Location immediately and rendered only the second response, so the first exchange never reached the screen. Its headers were still delivered and recorded in the Network panel.',
+                'real_world_relevance' => 'Redirects are everywhere: login flows send you to a sign-in page and back, and Post/Redirect/Get stops a form from being submitted twice on reload. When a page behaves unexpectedly, the cause is often in a response you never saw, so debugging means inspecting every exchange in the chain. A redirect is only an instruction to the client. If a server redirects an unauthorized visitor but still sends protected data with that response, the data has already been delivered; access control must stop the server from sending it, not just tell the browser to look elsewhere.',
+                'takeaways' => [
+                    'One navigation can contain several request/response exchanges.',
+                    'Inspect intermediate responses, not only the final page.',
+                    'A redirect tells the client where to go; it does not stop the server from sending data.',
+                ],
+            ],
+        ],
     ];
 }
 
@@ -222,6 +250,10 @@ function challenge_dispatch_delivery(string $slug, string $flag): void
             'httponly' => false,
             'samesite' => 'Lax'
         ]);
+    } elseif ($slug === 'redirect-response' && !is_post() && request_string($_GET, 'go') === 'archive') {
+        // The flag rides on the redirect itself, which the browser never renders.
+        header('X-MiniHack-Flag: ' . $flag);
+        redirect('/challenge.php?slug=redirect-response&arrived=1');
     }
 }
 
