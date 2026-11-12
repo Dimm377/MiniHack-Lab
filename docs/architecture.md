@@ -17,7 +17,7 @@ The secure application baseline and educational challenge mechanics share focuse
 
 Root PHP entry points render pages; <code>api/users.php</code> returns JSON. <code>includes/</code> owns shared sessions, authentication, CSRF, rendering helpers, and the challenge registry. <code>config/</code> owns the SQLite path and connection. <code>scripts/init_db.php</code> is CLI-only. <code>assets/</code> contains native CSS and JavaScript. <code>docs/</code> contains maintained project documentation.
 
-The PHP development <code>router.php</code> is a public-resource allowlist. It serves only known page/API entry points and the two application assets. Everything else returns a plain 404. The Apache <code>.htaccess</code> mirrors that public set and also disables indexes, MultiViews, and path-info routing.
+The PHP development <code>router.php</code> is a public-resource allowlist. It serves only known page/API entry points and a fixed list of assets: the stylesheet, the script and the five font files. Each asset carries its full <code>Content-Type</code>; text assets declare UTF-8, fonts are sent as <code>font/woff2</code>. Everything else returns a plain 404. The Apache <code>.htaccess</code> mirrors that public set and also disables indexes, MultiViews, and path-info routing.
 
 ## Data paths and initialization
 

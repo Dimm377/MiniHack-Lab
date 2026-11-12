@@ -137,7 +137,7 @@ require __DIR__ . '/includes/header.php';
         $record = $recordId === null ? null : ($challenge['records'][$recordId] ?? null);
         ?>
         <?= http_trace('Record lookup', [
-            ['direction' => 'request', 'summary' => ['GET', $requestUri], 'note' => null, 'sections' => [], 'open' => false],
+            ['direction' => 'request', 'summary' => [$requestMethod, $requestUri], 'note' => null, 'sections' => [], 'open' => false],
             ['direction' => 'response', 'summary' => [200, 'OK'],
                 'note' => $record === null ? 'Record not found' : 'Record #' . $recordId,
                 'sections' => $record === null ? [] : ['Record' => ['Owner' => $record['owner'], 'Content' => $record['content']]],

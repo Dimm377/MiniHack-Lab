@@ -284,6 +284,7 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $own = get($path . '&record=1042', $a['cookie']);
         check($own['status'] === 200 && str_contains($own['body'], 'Record #1042') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $own['body']), 'Own record has no flag');
         check(str_contains($own['body'], 'class="http-trace"') && str_contains($own['body'], '<b>200</b> OK'), 'Record lookup is shown as a trace');
+        check(str_contains(post($path . '&record=1042', [], $a['cookie'])['body'], '<b>POST</b> /challenge.php?slug=object-reference&amp;record=1042'), 'Record trace states the actual request method');
         foreach (['record=9999', 'record=abc', 'record=01041', 'record=0', 'record=-1', 'record[]=1041'] as $query) {
             $missing = get($path . '&' . $query, $a['cookie']);
             check($missing['status'] === 200 && str_contains($missing['body'], 'Record not found') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $missing['body']), "Unknown record is not found: $query");
