@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 // The flat source tree is not a public directory. Serve only known entry points.
 // Keep this list in sync with .htaccess when adding a public route or asset.
+header_remove('X-Powered-By');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
 header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");

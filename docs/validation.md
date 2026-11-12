@@ -18,7 +18,7 @@ git diff --check
 node <design-taste-frontend>/scripts/lint.mjs <changed UI files> --app
 ~~~
 
-The regression suite reported **529 passed; 0 failed**. It covered:
+The regression suite reported **534 passed; 0 failed**. It covered:
 
 - isolated, idempotent database/secret initialization and <code>0600</code> permissions;
 - developer runtime fingerprint unchanged before and after the complete suite;
@@ -36,6 +36,7 @@ The regression suite reported **529 passed; 0 failed**. It covered:
 - the authenticated, <code>no-store</code> recap: takeaways absent before a solve, present after it, and never shown for another account's progress;
 - Workbench onboarding, secure-baseline section, no duplicated catalog, start/continue link, finished-learner recap link, and inspector labelling and live region markup;
 - CSP, nosniff, referrer policy, challenge/API caching, and HTTPS/local cookie settings;
+- no <code>X-Powered-By</code> header on pages, the API, static assets, router 404s, and 405 responses;
 - private repository paths, hidden files, tests, patch/debug files, path-info, traversal/encoding variants, and instance-secret non-disclosure;
 - generic HTML/API database failures and generic missing-secret failure;
 - POST-only, CSRF-protected logout, cookie expiry, and destroyed session state.
@@ -51,9 +52,11 @@ The regression suite cannot execute <code>assets/js/app.js</code>. Headless Fire
 - no horizontal overflow (<code>scrollWidth ≤ innerWidth</code>) for the Workbench (guest and authenticated), catalog, locked and unlocked challenge pages, and recap at 1440, 768, and 507 CSS pixels;
 - unlocked "Server received" panel rendered in the browser.
 
+Because the suite always goes through <code>router.php</code>, header removal was also checked against a PHP server started without the router (as Apache would serve the entry points). <code>/</code>, <code>/login.php</code>, and <code>/api/users.php</code> sent no <code>X-Powered-By</code>, while a control file on the same server still did.
+
 ## CI configuration
 
-GitHub Actions uses least-privilege <code>contents: read</code>, runs syntax checks from tracked PHP files, and executes the same regression suite on PHP 8.2 and 8.5 with PDO SQLite. The local run above does not claim that GitHub-hosted jobs have executed for these uncommitted changes.
+GitHub Actions uses least-privilege <code>contents: read</code>, runs syntax checks from tracked PHP files, and executes the same regression suite on PHP 8.2 and 8.5 with PDO SQLite. Both jobs passed for commit <code>5b50d0f</code> (pull request #2). They have not yet run for the <code>X-Powered-By</code> change.
 
 Repository settings cannot be changed from this checkout. Protect <code>main</code> and require the workflow's PHP test checks before merge.
 
@@ -63,6 +66,5 @@ Repository settings cannot be changed from this checkout. Protect <code>main</co
 - Apache 2.4 was not started. The <code>.htaccess</code> allowlist, including the new <code>learned.php</code> entry, was reviewed, but its behavior depends on <code>mod_rewrite</code>, Apache configuration, and <code>AllowOverride</code>.
 - Chromium, Safari, Windows, macOS, mobile Safari, and mobile Chrome were not run.
 - Screen-reader output and physical touch/virtual-keyboard behavior were not tested.
-- The GitHub Actions workflow has not run against these working-tree changes.
 
 No result outside the automated and browser checks above is claimed.

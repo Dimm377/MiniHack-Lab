@@ -21,6 +21,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 function send_security_headers(): void
 {
     if (!headers_sent()) {
+        // expose_php cannot be changed at runtime; remove the PHP version header instead.
+        header_remove('X-Powered-By');
         header('X-Content-Type-Options: nosniff');
         header('Referrer-Policy: same-origin');
         header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
