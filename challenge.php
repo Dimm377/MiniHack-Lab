@@ -54,6 +54,15 @@ $statement->execute(['user_id' => $user['id'], 'challenge_slug' => $slug]);
 $solvedAt = $statement->fetchColumn();
 
 $isUnlocked = challenge_is_unlocked($slug);
+$inspection = $challenge['inspection'] ?? null;
+$requestMethod = request_string($_SERVER, 'REQUEST_METHOD');
+$bodyFields = is_post() ? $_POST : [];
+$attempted = $inspection !== null && (array_key_exists('inspect', $_GET) || array_key_exists('inspect', $bodyFields));
+// Echo what arrived without revealing the expected value; e() encodes it at output.
+$describeField = static fn (array $source): string => !array_key_exists('inspect', $source)
+    ? 'not sent'
+    : (is_string($source['inspect']) ? '"' . $source['inspect'] . '"' : 'not a single value');
+$nextSlug = challenge_next_slug($slug);
 
 $pageTitle = $challenge['title'];
 require __DIR__ . '/includes/header.php';
@@ -69,7 +78,7 @@ require __DIR__ . '/includes/header.php';
         </span>
     </div>
 </section>
-<p class="request-line"><span class="method"><?= e($challenge['method']) ?></span> <code>/challenge.php?slug=<?= e($slug) ?><?= ($slug === 'query-parameters' && $isUnlocked) ? '&amp;inspect=request' : '' ?></code></p>
+<p class="request-line"><span class="method"><?= e($requestMethod) ?></span> <code><?= e(request_string($_SERVER, 'REQUEST_URI')) ?></code></p>
 <div class="exercise-layout">
 <section class="challenge-task">
     <h2>Objective</h2>
@@ -81,20 +90,26 @@ require __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
     </ol>
 
-    <?php if (challenge_has_inspection_form($slug)): ?>
-    <form method="<?= $slug === 'query-parameters' ? 'get' : 'post' ?>" action="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>" novalidate>
+    <?php if ($inspection !== null): ?>
+    <form method="<?= e(strtolower($inspection['method'])) ?>" action="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>" novalidate>
         <input type="hidden" name="slug" value="<?= e($slug) ?>">
         <label for="inspect">Inspection target</label>
         <p id="inspect-help" class="hint">Available targets: page, request, body. Compare their responses.</p>
-        <input id="inspect" name="inspect" type="text" value="<?= e(request_string($slug === 'query-parameters' ? $_GET : $_POST, 'inspect')) ?>" aria-describedby="inspect-help" autocomplete="off" spellcheck="false">
+        <input id="inspect" name="inspect" type="text" value="<?= e(request_string($inspection['method'] === 'GET' ? $_GET : $bodyFields, 'inspect')) ?>" aria-describedby="inspect-help" autocomplete="off" spellcheck="false">
         <button type="submit">Send inspection</button>
     </form>
     <?php endif; ?>
 
-    <?php if ($isUnlocked): ?>
+    <?php if ($attempted): ?>
         <div class="challenge-output">
-            <span>Server response</span>
-            <code><?= e($expectedFlag) ?></code>
+            <span>Server received</span>
+            <dl class="response-metadata">
+                <dt>Method</dt><dd><?= e($requestMethod) ?></dd>
+                <dt>Query inspect</dt><dd><?= e($describeField($_GET)) ?></dd>
+                <dt>Body inspect</dt><dd><?= e($describeField($bodyFields)) ?></dd>
+                <dt>Result</dt><dd><?= $isUnlocked ? 'Unlocked: the server returned the training flag.' : 'Locked: this request did not meet the server&#039;s condition.' ?></dd>
+            </dl>
+            <?php if ($isUnlocked): ?><code><?= e($expectedFlag) ?></code><?php endif; ?>
         </div>
     <?php endif; ?>
 
@@ -142,6 +157,13 @@ require __DIR__ . '/includes/header.php';
         <?php foreach ($challenge['learning']['takeaways'] as $takeaway): ?>
             <li><?= e($takeaway) ?></li>
         <?php endforeach; ?>
+    </ul>
+    <ul class="inline-links">
+        <?php if ($nextSlug !== null): ?>
+            <li><a href="/challenge.php?slug=<?= e(rawurlencode($nextSlug)) ?>">Next challenge: <?= e(challenge_definition($nextSlug)['title']) ?> &rarr;</a></li>
+        <?php else: ?>
+            <li><a href="/learned.php">Review what you've learned &rarr;</a></li>
+        <?php endif; ?>
     </ul>
 </section>
 <?php endif; ?>
