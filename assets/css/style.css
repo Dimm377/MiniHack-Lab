@@ -1,3 +1,43 @@
+@font-face {
+    font-family: "IBM Plex Sans";
+    src: url("/assets/fonts/plex-sans-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IBM Plex Sans";
+    src: url("/assets/fonts/plex-sans-600.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IBM Plex Sans";
+    src: url("/assets/fonts/plex-sans-700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("/assets/fonts/jetbrains-mono-400.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    src: url("/assets/fonts/jetbrains-mono-700.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     color-scheme: dark;
     --background: #0d0f12;
@@ -17,8 +57,25 @@
     --danger-hover: #351c1c;
     --success: #a0c1a5;
     --success-surface: #142417;
-    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace; /* taste-skill-ignore */
+    --font-sans: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace; /* taste-skill-ignore */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5rem;
+    --text-2xl: 2.25rem;
+    --text-display: clamp(2.5rem, 5vw, 3.5rem);
+    --leading-body: 1.6;
+    --leading-heading: 1.15;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
     --max-width: 1080px;
     --radius-sm: 4px;
     --radius: 6px;
@@ -65,7 +122,9 @@ body {
     margin: 0;
     background-color: var(--background);
     color: var(--text);
-    font: 15px/1.65 var(--font-sans);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-body);
     caret-color: var(--accent);
     -webkit-font-smoothing: antialiased;
 }
@@ -129,7 +188,7 @@ main:focus {
     align-items: center;
     gap: 0.6rem;
     color: var(--text-bright);
-    font-size: 1.1rem;
+    font-size: var(--text-base);
     font-weight: 700;
     letter-spacing: -0.025em;
     text-decoration: none;
@@ -150,7 +209,7 @@ main:focus {
 
 .version {
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: var(--text-xs);
     font-variant-numeric: tabular-nums;
     background: var(--surface-raised);
     padding: 2px 7px;
@@ -164,7 +223,7 @@ main:focus {
     gap: 0.5rem;
     margin-left: auto;
     min-width: 0;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
 }
 
 .account-nav a {
@@ -204,7 +263,7 @@ nav a {
     padding: 0.35rem 0.85rem;
     border-radius: var(--radius);
     text-decoration: none;
-    font-size: 0.88rem;
+    font-size: var(--text-sm);
     font-weight: 500;
     transition: color 150ms ease, background-color 150ms ease;
 }
@@ -237,7 +296,7 @@ nav a[aria-current] {
     padding: 1.75rem max(1.25rem, calc((100% - var(--max-width)) / 2));
     border-top: 1px solid var(--border); /* taste-skill-ignore */
     color: var(--muted);
-    font-size: 0.8rem;
+    font-size: var(--text-xs);
     background: var(--surface);
 }
 
@@ -257,25 +316,24 @@ nav a[aria-current] {
 
 /* Typography */
 h1, h2, h3 {
-    line-height: 1.2;
+    line-height: var(--leading-heading);
     font-weight: 700;
     color: var(--text-bright);
-    letter-spacing: -0.035em;
+    letter-spacing: -0.02em;
 }
 
 h1 {
     margin: 0 0 0.65rem;
-    font-size: 2.25rem;
+    font-size: var(--text-2xl);
 }
 
 h2 {
     margin: 0 0 0.85rem;
-    font-size: 1.25rem;
-    letter-spacing: -0.02em;
+    font-size: var(--text-xl);
 }
 
 h3 {
-    font-size: 1rem;
+    font-size: var(--text-lg);
     font-weight: 600;
 }
 
@@ -302,7 +360,7 @@ code {
 }
 
 .hint {
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
 }
 
 .tabular-data {
@@ -311,7 +369,7 @@ code {
 
 .back-link {
     margin-bottom: 1.25rem;
-    font-size: 0.88rem;
+    font-size: var(--text-sm);
 }
 
 .back-link a {
@@ -336,7 +394,7 @@ code {
 .page-heading > div > p {
     margin: 0.4rem 0 0;
     color: var(--muted);
-    font-size: 1.05rem;
+    font-size: var(--text-base);
     line-height: 1.55;
 }
 
@@ -368,13 +426,13 @@ code {
 .training-index > p,
 .api-demo > p:not(.request-line) {
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
 }
 
 .tools-heading {
     margin-top: 2.75rem;
     margin-bottom: 0.85rem;
-    font-size: 1.15rem;
+    font-size: var(--text-lg);
     color: var(--text-bright);
 }
 
@@ -385,7 +443,7 @@ code {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: 0.88rem;
+    font-size: var(--text-sm);
 }
 
 .inline-links a {
@@ -424,7 +482,7 @@ code {
 }
 
 .console-title {
-    font-size: 0.72rem;
+    font-size: var(--text-xs);
     font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
@@ -472,7 +530,7 @@ code {
 }
 
 .method {
-    font-size: 0.72rem;
+    font-size: var(--text-xs);
     background: var(--surface-elevated);
     color: var(--accent);
     padding: 3px 8px;
@@ -489,14 +547,14 @@ code {
 
 #api-status {
     color: var(--muted);
-    font-size: 0.8rem;
+    font-size: var(--text-xs);
     font-variant-numeric: tabular-nums;
 }
 
 .response-metadata {
     display: grid;
     grid-template-columns: 115px minmax(0, 1fr);
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     line-height: 1.8;
     color: var(--muted);
     gap: 0.2rem 0.6rem;
@@ -515,7 +573,7 @@ pre {
     overflow-x: auto;
     border-radius: var(--radius);
     background: var(--background);
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     margin: 0;
 }
 
@@ -542,7 +600,7 @@ pre {
     background: var(--surface);
     padding: 0.4rem 0.9rem;
     border-radius: var(--radius-pill);
-    font-size: 0.82rem;
+    font-size: var(--text-sm);
 }
 
 .progress-count {
@@ -554,7 +612,7 @@ pre {
 .progress-label {
     color: var(--muted);
     text-transform: uppercase;
-    font-size: 0.72rem;
+    font-size: var(--text-xs);
     letter-spacing: 0.05em;
     font-weight: 600;
 }
@@ -589,7 +647,7 @@ pre {
 }
 
 .challenge-number {
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     font-weight: 700;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
@@ -597,7 +655,7 @@ pre {
 
 .challenge-main h3 {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: var(--text-base);
     font-weight: 650;
     color: var(--text-bright);
     transition: color 150ms ease;
@@ -610,7 +668,7 @@ pre {
 .challenge-main p {
     margin: 0.25rem 0 0;
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     line-height: 1.45;
 }
 
@@ -621,7 +679,7 @@ pre {
 }
 
 .challenge-status {
-    font-size: 0.74rem;
+    font-size: var(--text-xs);
     font-weight: 650;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -671,17 +729,17 @@ pre {
 }
 
 .challenge-output {
-    margin-top: 1.5rem;
+    margin-top: var(--space-6);
     border-radius: var(--radius-lg);
     background: var(--surface);
-    padding: 1.15rem 1.4rem;
+    padding: var(--space-4) var(--space-6);
     overflow-x: auto;
 }
 
 .challenge-output span {
     display: block;
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: var(--text-xs);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -705,14 +763,14 @@ pre {
 
 .form-panel > p {
     color: var(--muted);
-    font-size: 0.92rem;
+    font-size: var(--text-sm);
 }
 
 .form-switch {
     margin-top: 2rem;
     padding-top: 1.25rem;
     border-top: 1px solid var(--border); /* taste-skill-ignore */
-    font-size: 0.88rem;
+    font-size: var(--text-sm);
     color: var(--muted);
 }
 
@@ -724,7 +782,7 @@ pre {
 
 .solved-answer h2 {
     margin: 0 0 0.5rem;
-    font-size: 1.05rem;
+    font-size: var(--text-base);
     color: var(--success);
 }
 
@@ -733,7 +791,7 @@ pre {
     max-width: 100%;
     overflow-wrap: anywhere;
     color: var(--success);
-    font-size: 1rem;
+    font-size: var(--text-base);
     font-weight: 600;
     background: var(--background);
 }
@@ -791,7 +849,7 @@ pre {
     border-radius: var(--radius-pill);
     background: var(--surface);
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: var(--text-xs);
     white-space: nowrap;
 }
 
@@ -822,12 +880,12 @@ pre {
 /* Forms & Interactive Controls (Solid, Tactile, Zero-Slop) */
 form {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--space-3);
 }
 
 label {
     margin-top: 0.5rem;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     font-weight: 600;
     color: var(--text-bright);
 }
@@ -835,7 +893,7 @@ label {
 input, textarea {
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 0.65rem 0.85rem;
+    padding: var(--space-3) var(--space-3);
     background: var(--input);
     color: var(--text-bright);
     font: inherit;
@@ -871,11 +929,11 @@ button {
     background: var(--surface-raised);
     color: var(--text-bright);
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: var(--text-sm);
     font-weight: 600;
     border-radius: var(--radius);
     min-height: 40px;
-    padding: 0.55rem 1.15rem;
+    padding: var(--space-2) var(--space-4);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1001,7 +1059,7 @@ button.danger:hover {
 .alert {
     padding: 0.85rem 1.15rem;
     border-radius: var(--radius);
-    font-size: 0.92rem;
+    font-size: var(--text-sm);
     margin-bottom: 1.5rem;
 }
 
@@ -1044,7 +1102,7 @@ button.danger:hover {
 .result-list small,
 .note-meta {
     color: var(--muted);
-    font-size: 0.78rem;
+    font-size: var(--text-xs);
     line-height: 1.6;
     font-variant-numeric: tabular-nums;
 }
@@ -1114,7 +1172,7 @@ button.danger:hover {
 .note h3 {
     margin: 0;
     color: var(--text-bright);
-    font-size: 1.05rem;
+    font-size: var(--text-base);
     overflow-wrap: anywhere;
 }
 
@@ -1133,7 +1191,7 @@ button.danger:hover {
 }
 
 .delete-confirmation {
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     margin-top: 0.65rem;
 }
 
@@ -1178,7 +1236,7 @@ summary:hover {
     }
 
     .challenge-number {
-        font-size: 0.95rem;
+        font-size: var(--text-sm);
     }
 
     .page-heading .challenge-status {
@@ -1219,12 +1277,12 @@ summary:hover {
     }
 
     nav a {
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
         padding: 0.4rem 0.5rem;
     }
 
     h1 {
-        font-size: 1.75rem;
+        font-size: var(--text-xl);
     }
 
     .section-heading {

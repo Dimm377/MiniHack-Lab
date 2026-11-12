@@ -413,6 +413,13 @@ foreach (['/assets/fonts/OFL-IBM-Plex.txt', '/assets/fonts/other.woff2', '/asset
     check(get($path)['status'] === 404, "Font directory stays private: $path");
 }
 check(str_contains(get('/')['body'], '<link rel="preload" href="/assets/fonts/plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>'), 'Body font is preloaded');
+$css = (string) file_get_contents($root . '/assets/css/style.css');
+foreach ([['IBM Plex Sans', '400'], ['IBM Plex Sans', '600'], ['IBM Plex Sans', '700'], ['JetBrains Mono', '400'], ['JetBrains Mono', '700']] as [$family, $weight]) {
+    check(preg_match('/@font-face\s*\{[^}]*font-family:\s*"' . $family . '";[^}]*font-weight:\s*' . $weight . ';[^}]*font-display:\s*swap;/s', $css) === 1, "@font-face declares $family $weight with swap");
+}
+check(preg_match('/--font-sans:\s*"IBM Plex Sans",[^;]*system-ui/', $css) === 1 && preg_match('/--font-mono:\s*"JetBrains Mono",[^;]*ui-monospace/', $css) === 1, 'Font stacks keep system fallbacks');
+$cssOutsideRoot = preg_replace('/:root\s*\{[^}]*\}/s', '', $css, 1);
+check(preg_match('/font-size:\s*[0-9.]+(rem|px)|\bfont:\s*[0-9]/', (string) $cssOutsideRoot) === 0, 'Font sizes come from type tokens');
 foreach (['minihack.sqlite', 'instance_secret'] as $file) {
     check((fileperms($testDirectory . '/' . $file) & 0777) === 0600, "$file has owner-only permissions");
 }
