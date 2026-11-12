@@ -90,6 +90,39 @@ require __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
     </ol>
 
+    <?php if (isset($challenge['trigger'])): ?>
+        <ul class="inline-links">
+            <li><a href="<?= e('/challenge.php?slug=' . rawurlencode($slug) . '&' . $challenge['trigger']['query']) ?>"><?= e($challenge['trigger']['label']) ?></a></li>
+        </ul>
+        <?php if (isset($challenge['trigger']['arrival']) && request_string($_GET, 'arrived') === '1'): ?>
+            <div class="challenge-output">
+                <span>Page response</span>
+                <p><?= e($challenge['trigger']['arrival']) ?></p>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if (isset($challenge['records']) && array_key_exists('record', $_GET)): ?>
+        <?php
+        // Intentional flaw over synthetic data only: the lookup uses the client ID and never checks the owner.
+        $recordId = positive_int($_GET['record']);
+        $record = $recordId === null ? null : ($challenge['records'][$recordId] ?? null);
+        ?>
+        <div class="challenge-output">
+            <span>Page response</span>
+            <?php if ($record === null): ?>
+                <p>Record not found.</p>
+            <?php else: ?>
+                <p><strong>Record #<?= e($recordId) ?></strong></p>
+                <dl class="response-metadata">
+                    <dt>Owner</dt><dd><?= e($record['owner']) ?></dd>
+                    <dt>Content</dt><dd><?= e($record['content']) ?></dd>
+                </dl>
+                <?php if ($record['holds_flag']): ?><code><?= e($expectedFlag) ?></code><?php endif; ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
     <?php if ($inspection !== null): ?>
     <form method="<?= e(strtolower($inspection['method'])) ?>" action="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>" novalidate>
         <input type="hidden" name="slug" value="<?= e($slug) ?>">

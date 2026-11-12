@@ -169,10 +169,12 @@ $releasedPhrases = [
     'page-source' => 'v13w_s0urc3_n3v3r_l13s',
     'cookie-state' => 'c00k13s_r3m3mb3r',
     'request-method-body' => 'us3_th3_r1ght_m3th0d',
+    'redirect-response' => 'r3d1r3cts_t4k3_a_d3t0ur',
+    'object-reference' => 'ch3ck_wh0_0wns_1t',
 ];
 $definitions = challenge_definitions();
 check(array_keys($definitions) === array_keys($releasedPhrases), 'Released challenge slugs remain unchanged');
-foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state', 'request-method-body'] as $slug) {
+foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state', 'request-method-body', 'redirect-response', 'object-reference'] as $slug) {
     $path = '/challenge.php?slug=' . $slug;
     $plain = get($path, $a['cookie']);
     $definition = $definitions[$slug];
@@ -233,8 +235,9 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $responseB = post($path, ['inspect' => 'body'], $b['cookie']);
         check(count_rows($pdo, 'solves') === $solvesBeforeExploration, 'Exploration POST does not mutate solve state');
     } else {
-        $responseA = get($path . ($slug === 'query-parameters' ? '&inspect=request' : ''), $a['cookie']);
-        $responseB = get($path . ($slug === 'query-parameters' ? '&inspect=request' : ''), $b['cookie']);
+        $discovery = ['query-parameters' => '&inspect=request', 'redirect-response' => '&go=archive', 'object-reference' => '&record=1041'][$slug] ?? '';
+        $responseA = get($path . $discovery, $a['cookie']);
+        $responseB = get($path . $discovery, $b['cookie']);
     }
     
     if (in_array($slug, ['query-parameters', 'request-method-body'], true)) {
@@ -253,6 +256,36 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $flagA = $matchA[1] ?? '';
         $flagB = $matchB[1] ?? '';
         check($flagA !== '', 'Cookie state flag is in set-cookie header');
+    } elseif ($slug === 'redirect-response') {
+        $flagA = $responseA['headers']['x-minihack-flag'] ?? '';
+        $flagB = $responseB['headers']['x-minihack-flag'] ?? '';
+        check($responseA['status'] === 303 && ($responseA['headers']['location'] ?? '') === '/challenge.php?slug=redirect-response&arrived=1', 'Archive link answers with a 303 to the arrival page');
+        check($flagA !== '' && !str_contains($responseA['body'], $flagA) && str_contains($responseA['headers']['cache-control'] ?? '', 'no-store'), 'Redirect flag is only in the uncached 303 headers');
+        $arrived = get($path . '&arrived=1', $a['cookie']);
+        check(str_contains($arrived['body'], 'What happened on the way?') && !str_contains($arrived['body'], $flagA) && !isset($arrived['headers']['x-minihack-flag']), 'Arrival page shows no flag');
+        foreach (['&go=elsewhere', '&go[]=archive'] as $query) {
+            check(!isset(get($path . $query, $a['cookie'])['headers']['x-minihack-flag']), "Redirect requires go=archive exactly: $query");
+        }
+        $postGo = post($path . '&go=archive', ['flag' => 'MHL{invalid}', 'csrf_token' => $a['csrf']], $a['cookie']);
+        check($postGo['status'] === 200 && !isset($postGo['headers']['x-minihack-flag']), 'POST with go=archive is not redirected and carries no flag');
+        $guestGo = get($path . '&go=archive');
+        check($guestGo['status'] === 303 && ($guestGo['headers']['location'] ?? '') === '/login.php' && !isset($guestGo['headers']['x-minihack-flag']), 'Guest archive request goes to login without a flag');
+        check(str_contains($plain['body'], 'href="/challenge.php?slug=redirect-response&amp;go=archive"'), 'Challenge page links to the archive');
+    } elseif ($slug === 'object-reference') {
+        preg_match('/(MHL\{[a-z0-9_]+_[a-f0-9]{12}\})/', $responseA['body'], $matchA);
+        preg_match('/(MHL\{[a-z0-9_]+_[a-f0-9]{12}\})/', $responseB['body'], $matchB);
+        $flagA = $matchA[1] ?? '';
+        $flagB = $matchB[1] ?? '';
+        check(str_contains($responseA['body'], 'lab-reviewer'), 'Record 1041 belongs to lab-reviewer');
+        $guestRecord = get($path . '&record=1041');
+        check($guestRecord['status'] === 303 && ($guestRecord['headers']['location'] ?? '') === '/login.php' && !str_contains($guestRecord['body'], 'MHL{'), 'Guest record request goes to login without a flag');
+        $own = get($path . '&record=1042', $a['cookie']);
+        check($own['status'] === 200 && str_contains($own['body'], 'Record #1042') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $own['body']), 'Own record has no flag');
+        foreach (['record=9999', 'record=abc', 'record=01041', 'record=0', 'record=-1', 'record[]=1041'] as $query) {
+            $missing = get($path . '&' . $query, $a['cookie']);
+            check($missing['status'] === 200 && str_contains($missing['body'], 'Record not found') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $missing['body']), "Unknown record is not found: $query");
+        }
+        check(str_contains($plain['body'], 'href="/challenge.php?slug=object-reference&amp;record=1042"'), 'Challenge page links to the learner record');
     } else {
         $pattern = $slug === 'page-source' ? '/<!-- MiniHack challenge flag: (MHL\{[a-z0-9_]+_[a-f0-9]{12}\}) -->/' : '/(MHL\{[a-z0-9_]+_[a-f0-9]{12}\})/';
         preg_match($pattern, $responseA['body'], $matchA);
@@ -321,9 +354,14 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
     $otherUser = get($path . '&user_id=' . $idA . '&solved=1', $b['cookie']);
     check(!str_contains($otherUser['body'], 'Real-World Relevance') && !str_contains($otherUser['body'], $flagA), "$slug cannot borrow another user's solved state or flag");
 }
-check(count(array_unique($flags)) === 5, 'Each challenge uses a distinct flag');
+$total = count($definitions);
+check(count(array_unique($flags)) === $total, 'Each challenge uses a distinct flag');
+check(!str_contains(get('/challenge.php?slug=query-parameters&record=1041', $a['cookie'])['body'], challenge_flag($idA, 'object-reference')), 'Records exist only on the object-reference challenge');
 check((int) $pdo->query('SELECT COUNT(*) FROM solves WHERE user_id = ' . $idB)->fetchColumn() === 0, 'Another user has no recorded progress');
-check(str_contains(get('/challenges.php', $a['cookie'])['body'], '5 / 5') && str_contains(get('/challenges.php', $b['cookie'])['body'], '0 / 5'), 'Catalog progress is isolated');
+check(str_contains(get('/challenges.php', $a['cookie'])['body'], "$total / $total") && str_contains(get('/challenges.php', $b['cookie'])['body'], "0 / $total"), 'Catalog progress is isolated');
+$catalog = get('/challenges.php', $a['cookie'])['body'];
+check(array_filter($definitions, static fn ($d) => !is_string($d['category'] ?? null) || $d['category'] === '') === [], 'Every challenge declares a category');
+check(substr_count($catalog, '<h2>HTTP Fundamentals</h2>') === 1 && substr_count($catalog, '<h2>Access Control</h2>') === 1, 'Catalog renders each category heading once');
 $learnedB = get('/learned.php', $b['cookie']);
 $anyTakeaway = static fn (string $body): bool => array_filter($definitions, static fn ($d) => str_contains($body, htmlspecialchars($d['learning']['takeaways'][0], ENT_QUOTES, 'UTF-8'))) !== [];
 check($learnedB['status'] === 200 && str_contains($learnedB['headers']['cache-control'] ?? '', 'no-store') && !$anyTakeaway($learnedB['body']), 'Recap shows only the viewer\'s own solves');
@@ -333,9 +371,9 @@ check(str_contains($guestHome['body'], 'How this lab works') && str_contains($gu
 check(preg_match('/<input id="api-user-id"[^>]*aria-label="User ID"/', $guestHome['body']) === 1
     && str_contains($guestHome['body'], 'aria-live="polite"') && str_contains($guestHome['body'], 'id="api-headers"'), 'Inspector input is labelled and results are announced');
 $homeB = get('/', $b['cookie']);
-check(str_contains($homeB['body'], '0 / 5') && str_contains($homeB['body'], 'href="/challenge.php?slug=query-parameters"'), 'Workbench offers the next unsolved challenge');
+check(str_contains($homeB['body'], "0 / $total") && str_contains($homeB['body'], 'href="/challenge.php?slug=query-parameters"'), 'Workbench offers the next unsolved challenge');
 $homeA = get('/', $a['cookie']);
-check(str_contains($homeA['body'], '5 / 5') && str_contains($homeA['body'], 'href="/learned.php"'), 'Workbench links a finished learner to the recap');
+check(str_contains($homeA['body'], "$total / $total") && str_contains($homeA['body'], 'href="/learned.php"'), 'Workbench links a finished learner to the recap');
 check(get('/challenge.php?slug=unknown', $a['cookie'])['status'] === 404, 'Unknown challenge returns 404');
 check(get('/challenge.php?slug[]=page-source', $a['cookie'])['status'] === 404, 'Array challenge slug returns 404');
 

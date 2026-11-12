@@ -27,10 +27,20 @@ require __DIR__ . '/includes/header.php';
         <span class="progress-label">Solved</span>
     </div>
 </section>
-<section aria-label="HTTP exercises">
-    <div class="section-heading"><h2>HTTP Fundamentals</h2></div>
+<section aria-label="Challenges by category">
+    <?php
+    // Registry order is the learning order; categories group it without reordering.
+    $groups = [];
+    foreach ($definitions as $slug => $challenge) {
+        $groups[$challenge['category']][$slug] = $challenge;
+    }
+    $num = 1;
+    ?>
+    <?php foreach ($groups as $category => $groupChallenges): ?>
+    <div class="challenge-group">
+    <div class="section-heading"><h2><?= e($category) ?></h2></div>
     <div class="challenge-list">
-        <?php $num = 1; foreach ($definitions as $slug => $challenge): ?>
+        <?php foreach ($groupChallenges as $slug => $challenge): ?>
             <?php $isSolved = isset($solves[$slug]); ?>
             <a class="challenge-row" href="/challenge.php?slug=<?= e(rawurlencode($slug)) ?>">
                 <span class="challenge-number"><?= sprintf('%02d', $num++) ?></span>
@@ -47,6 +57,8 @@ require __DIR__ . '/includes/header.php';
             </a>
         <?php endforeach; ?>
     </div>
+    </div>
+    <?php endforeach; ?>
     <p class="hint">Each flag belongs to your account. Repeating a solve keeps the same result. <a href="/learned.php">Review what you've learned</a></p>
 </section>
 <?php require __DIR__ . '/includes/footer.php'; ?>

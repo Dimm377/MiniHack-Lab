@@ -8,7 +8,7 @@ MiniHack Web Lab v0.2
 └── educational HTTP/security challenges
 ~~~
 
-The baseline demonstrates defensive registration, authentication, authorization, private notes, public search, and a JSON API. The challenge area asks an authenticated user to recover per-user flags from query behavior, response headers, and page source without weakening the baseline.
+The baseline demonstrates defensive registration, authentication, authorization, private notes, public search, and a JSON API. The challenge area asks an authenticated user to recover per-user flags from query behavior, response headers, page source, cookies, request bodies, and redirects without weakening the baseline.
 
 ## Stack and support
 
@@ -49,7 +49,7 @@ For Apache, point the document root at this repository, enable PHP and <code>mod
 - User search: literal LIKE matching with percent, underscore, quotes, and backslashes
 - Notes: server-derived ownership and encoded stored content
 - User API: explicit JSON status codes and public fields only
-- Challenges: query parameters, response headers, page source, and per-user solves
+- Challenges: query parameters, response headers, page source, cookies, request methods and bodies, redirects, and per-user solves
 
 Run the isolated regression suite:
 
@@ -64,6 +64,8 @@ The runner creates a unique <code>/tmp/minihack-test-&lt;random&gt;/</code> data
 ## Security boundary
 
 The application is a secure baseline plus intentionally observable learning mechanics. Challenge flags are scoped to an authenticated user, derived from a local instance secret, and exposed only by each challenge's documented behavior. They are not credentials.
+
+The `object-reference` challenge deliberately looks up a record by the ID in the URL without checking its owner, to teach insecure direct object references. That flaw applies only to three static, synthetic records defined in code. It never reads accounts, notes, or solve records, and the baseline's own ownership checks are unchanged and covered by regression tests.
 
 Released challenge slugs are immutable. Renaming one requires an explicit migration because the slug identifies solve records and participates in flag derivation.
 

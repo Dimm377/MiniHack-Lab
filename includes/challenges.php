@@ -13,9 +13,12 @@ require_once dirname(__DIR__) . '/config/database.php';
  *     title: string,
  *     summary: string,
  *     method: string,
+ *     category: string,
  *     objective: string,
  *     instructions: list<string>,
  *     inspection?: array{method: 'GET'|'POST', value: string},
+ *     trigger?: array{label: string, query: string, arrival?: string},
+ *     records?: array<int, array{owner: string, content: string, holds_flag: bool}>,
  *     hints: array{direction: string, concept: string, action: string},
  *     learning: array{
  *         why_it_worked: string,
@@ -32,6 +35,7 @@ function challenge_definitions(): array
             'title' => 'What\'s in the URL?',
             'summary' => 'Compare how the same page responds to different inputs.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'This page accepts an inspection target. Find an input that changes its response and recover the training flag.',
             'instructions' => [
                 'Use the inspection form below. Before sending, predict what will change.',
@@ -58,6 +62,7 @@ function challenge_definitions(): array
             'title' => 'Check the Fine Print',
             'summary' => 'Compare a page visit with the exchange that delivered it.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'Loading this challenge returns a training flag to your browser. Recover it by investigating the exchange for this page.',
             'instructions' => [
                 'Reload the page while observing its request in browser developer tools.',
@@ -83,6 +88,7 @@ function challenge_definitions(): array
             'title' => 'Behind the Curtain',
             'summary' => 'Compare what a browser receives with what it displays.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'This page arrives with a training flag, but the visible content is only part of the evidence. Recover the flag from what your browser received.',
             'instructions' => [
                 'Load the challenge and compare the delivered document with the visible page.',
@@ -108,6 +114,7 @@ function challenge_definitions(): array
             'title' => 'Crumbs Left Behind',
             'summary' => 'Observe what a page visit leaves in the browser.',
             'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'Visiting this challenge leaves training state in your browser. Find what the visit leaves behind and recover the training flag.',
             'instructions' => [
                 'Observe the browser state for this site, then load the challenge again.',
@@ -133,6 +140,7 @@ function challenge_definitions(): array
             'title' => 'Say It Properly',
             'summary' => 'Compare a page visit with data sent from a form.',
             'method' => 'POST',
+            'category' => 'HTTP Fundamentals',
             'objective' => 'This challenge accepts inspection attempts as well as page visits. Find an attempt that changes the server response and recover the training flag.',
             'instructions' => [
                 'Try the inspection form and compare its request with a normal page visit.',
@@ -151,6 +159,66 @@ function challenge_definitions(): array
                     'Compare the method and body as well as the URL.',
                     'Query fields and body fields are different inputs.',
                     'Using POST does not make a request trusted or confidential.',
+                ],
+            ],
+        ],
+        'redirect-response' => [
+            'phrase' => 'r3d1r3cts_t4k3_a_d3t0ur',
+            'title' => 'Lost in Transit',
+            'summary' => 'Compare one click with the exchanges it actually caused.',
+            'method' => 'GET',
+            'category' => 'HTTP Fundamentals',
+            'objective' => 'Opening the archive delivers a training flag, but it never appears on screen. Find the exchange that carried it.',
+            'instructions' => [
+                'Open the archive with the link below and note where you end up.',
+                'Compare what you clicked with the requests your browser actually made.',
+            ],
+            'trigger' => ['label' => 'Open the archive', 'query' => 'go=archive', 'arrival' => 'You arrived. What happened on the way?'],
+            'hints' => [
+                'direction' => 'One click. How many responses?',
+                'concept' => 'A 3xx status with a Location header makes the browser send a new request automatically; only the final response is rendered.',
+                'action' => 'Enable Preserve log in the Network panel, open the archive again, and select the 303 entry.',
+            ],
+            'learning' => [
+                'why_it_worked' => 'Opening the archive sent a GET with go=archive. The server answered with a 303 See Other status, a Location header pointing to the arrival page, and the training flag in an X-MiniHack-Flag header. The browser followed Location immediately and rendered only the second response, so the first exchange never reached the screen. Its headers were still delivered and recorded in the Network panel.',
+                'real_world_relevance' => 'Redirects are everywhere: login flows send you to a sign-in page and back, and Post/Redirect/Get stops a form from being submitted twice on reload. When a page behaves unexpectedly, the cause is often in a response you never saw, so debugging means inspecting every exchange in the chain. A redirect is only an instruction to the client. If a server redirects an unauthorized visitor but still sends protected data with that response, the data has already been delivered; access control must stop the server from sending it, not just tell the browser to look elsewhere.',
+                'takeaways' => [
+                    'One navigation can contain several request/response exchanges.',
+                    'Inspect intermediate responses, not only the final page.',
+                    'A redirect tells the client where to go; it does not stop the server from sending data.',
+                ],
+            ],
+        ],
+        'object-reference' => [
+            'phrase' => 'ch3ck_wh0_0wns_1t',
+            'title' => 'Someone Else\'s Record',
+            'summary' => 'See whether the server checks who a record belongs to.',
+            'method' => 'GET',
+            'category' => 'Access Control',
+            'objective' => 'Your account can open its own training record. Find out whether the server stops you from opening someone else\'s.',
+            'instructions' => [
+                'Open your record with the link below and read the address.',
+                'Predict what the server checks before it returns a record, then test that prediction.',
+            ],
+            'trigger' => ['label' => 'Your record', 'query' => 'record=1042'],
+            // Synthetic, code-only data: never users, notes or solves. Hyphenated owner cannot be a real username.
+            'records' => [
+                1040 => ['owner' => 'archived', 'content' => 'This record was archived and holds no notes.', 'holds_flag' => false],
+                1041 => ['owner' => 'lab-reviewer', 'content' => 'Review notes for the access-control exercise. Training flag:', 'holds_flag' => true],
+                1042 => ['owner' => 'you', 'content' => 'Your training record. Nothing here yet besides this note.', 'holds_flag' => false],
+            ],
+            'hints' => [
+                'direction' => 'The address names the record. Who decides whether you may see it?',
+                'concept' => 'If a server uses a client-supplied identifier to select data without checking ownership, every reachable ID becomes readable.',
+                'action' => 'Open your record, change the record number in the address to a neighbouring value, and compare the owner.',
+            ],
+            'learning' => [
+                'why_it_worked' => 'The record page selected a record using only the number in the URL. It never compared the record\'s owner with the account in your session, so changing 1042 to 1041 returned lab-reviewer\'s record and the training flag in it. The server let a client-supplied identifier make an access decision.',
+                'real_world_relevance' => 'This is an insecure direct object reference, part of Broken Access Control, the top category in the OWASP Top 10. Sequential IDs make it easy to find, but random IDs such as UUIDs only hide objects: anyone who learns an ID can still use it. The fix is an ownership check on every request. MiniHack\'s private notes do this: the owner comes from your session and the delete query includes AND user_id = :user_id. Send another account\'s note ID there and the server refuses.',
+                'takeaways' => [
+                    'Every object request needs a server-side ownership check.',
+                    'Unguessable IDs hide objects; they do not authorize access.',
+                    'Ownership must come from the session, not the request.',
                 ],
             ],
         ],
@@ -216,6 +284,10 @@ function challenge_dispatch_delivery(string $slug, string $flag): void
             'httponly' => false,
             'samesite' => 'Lax'
         ]);
+    } elseif ($slug === 'redirect-response' && !is_post() && request_string($_GET, 'go') === 'archive') {
+        // The flag rides on the redirect itself, which the browser never renders.
+        header('X-MiniHack-Flag: ' . $flag);
+        redirect('/challenge.php?slug=redirect-response&arrived=1');
     }
 }
 
