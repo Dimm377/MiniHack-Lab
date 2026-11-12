@@ -45,7 +45,7 @@ HTML entry points encode untrusted values with <code>htmlspecialchars()</code>. 
 
 <code>GET /api/users.php?id=&lt;positive integer&gt;</code> returns only <code>id</code> and <code>username</code>. It returns JSON for 200, 400, 404, 405, and 500 outcomes, sets <code>Cache-Control: no-store</code>, and hides PDO errors, filesystem paths, and private fields.
 
-Shared HTML responses send CSP, <code>X-Content-Type-Options: nosniff</code>, and <code>Referrer-Policy: same-origin</code>. Exceptions are logged server-side and rendered as a generic 500 page.
+Shared HTML responses send CSP, <code>X-Content-Type-Options: nosniff</code>, and <code>Referrer-Policy: same-origin</code>. Because <code>expose_php</code> is a <code>php.ini</code> setting, the router, shared page bootstrap, and API each remove <code>X-Powered-By</code> so responses do not disclose the PHP version. Exceptions are logged server-side and rendered as a generic 500 page.
 
 ## Challenge registry and flags
 

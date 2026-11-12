@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/config/database.php';
 
 ini_set('display_errors', '0');
+header_remove('X-Powered-By');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
 header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'");

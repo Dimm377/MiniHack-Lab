@@ -389,6 +389,10 @@ foreach (['/', '/search.php', '/api/users.php?id=1', '/challenges.php'] as $path
     check(($response['headers']['referrer-policy'] ?? '') === 'same-origin', "Referrer policy: $path");
     check(str_contains($response['headers']['content-security-policy'] ?? '', "frame-ancestors 'none'"), "CSP frame protection: $path");
 }
+// expose_php is a php.ini setting, so every response path must remove the header itself.
+foreach (['/', '/api/users.php?id=1', '/assets/css/style.css', '/missing-page', '/logout.php'] as $path) {
+    check(!isset(get($path, $a['cookie'])['headers']['x-powered-by']), "No X-Powered-By version disclosure: $path");
+}
 check(post('/notes.php', ['action' => 'delete', 'note_id' => $noteId, 'csrf_token' => $a['csrf']], $a['cookie'])['status'] === 303 && count_rows($pdo, 'notes') === 0, 'Owner can delete their note');
 check(get('/logout.php', $a['cookie'])['status'] === 405, 'Logout is POST-only');
 foreach ([null, 'invalid'] as $token) {
