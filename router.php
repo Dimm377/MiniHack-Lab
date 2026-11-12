@@ -14,7 +14,7 @@ $path = is_string($path) ? rawurldecode($path) : '';
 $pages = [
     '/', '/index.php', '/login.php', '/register.php', '/logout.php',
     '/profile.php', '/notes.php', '/search.php', '/challenges.php',
-    '/challenge.php', '/api/users.php',
+    '/challenge.php', '/learned.php', '/api/users.php',
 ];
 $assets = ['/assets/css/style.css' => 'text/css', '/assets/js/app.js' => 'text/javascript'];
 if (in_array($path, $pages, true)) {
