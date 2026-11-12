@@ -220,6 +220,7 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         $locked = get($path . '&inspect=' . ($method === 'get' ? 'page' : 'body'), $a['cookie']);
         check(str_contains($locked['body'], 'Server received') && str_contains($locked['body'], 'Locked')
             && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $locked['body']), "$slug echoes a locked experiment without a flag");
+        check(str_contains($locked['body'], 'class="http-trace"') && substr_count($locked['body'], 'http-trace__row') === 2, "$slug shows the experiment as a request/response trace");
         if ($method === 'post') {
             check(str_contains($locked['body'], '<dt>Query inspect</dt><dd>&quot;body&quot;</dd>')
                 && str_contains($locked['body'], '<dt>Body inspect</dt><dd>not sent</dd>'), 'Body challenge shows a query value is not a body value');
@@ -282,6 +283,7 @@ foreach (['query-parameters', 'response-headers', 'page-source', 'cookie-state',
         check($guestRecord['status'] === 303 && ($guestRecord['headers']['location'] ?? '') === '/login.php' && !str_contains($guestRecord['body'], 'MHL{'), 'Guest record request goes to login without a flag');
         $own = get($path . '&record=1042', $a['cookie']);
         check($own['status'] === 200 && str_contains($own['body'], 'Record #1042') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $own['body']), 'Own record has no flag');
+        check(str_contains($own['body'], 'class="http-trace"') && str_contains($own['body'], '<b>200</b> OK'), 'Record lookup is shown as a trace');
         foreach (['record=9999', 'record=abc', 'record=01041', 'record=0', 'record=-1', 'record[]=1041'] as $query) {
             $missing = get($path . '&' . $query, $a['cookie']);
             check($missing['status'] === 200 && str_contains($missing['body'], 'Record not found') && !preg_match('/MHL\{[a-z0-9_]+_[a-f0-9]{12}\}/', $missing['body']), "Unknown record is not found: $query");

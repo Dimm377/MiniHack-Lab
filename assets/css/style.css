@@ -1343,6 +1343,10 @@ summary:hover {
     border-radius: var(--radius-sm);
 }
 
+.trace-flag {
+    margin: var(--space-3) 0 0;
+}
+
 /* Media Queries & Responsive Adaptations */
 @media (max-width: 760px) {
     .container {

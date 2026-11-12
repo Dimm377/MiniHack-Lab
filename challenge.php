@@ -6,6 +6,7 @@ require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/csrf.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/challenges.php';
+require_once __DIR__ . '/includes/trace.php';
 require_once __DIR__ . '/config/database.php';
 
 $user = require_auth();
@@ -56,6 +57,7 @@ $solvedAt = $statement->fetchColumn();
 $isUnlocked = challenge_is_unlocked($slug);
 $inspection = $challenge['inspection'] ?? null;
 $requestMethod = request_string($_SERVER, 'REQUEST_METHOD');
+$requestUri = request_string($_SERVER, 'REQUEST_URI');
 $bodyFields = is_post() ? $_POST : [];
 $attempted = $inspection !== null && (array_key_exists('inspect', $_GET) || array_key_exists('inspect', $bodyFields));
 // Echo what arrived without revealing the expected value; e() encodes it at output.
@@ -78,7 +80,7 @@ require __DIR__ . '/includes/header.php';
         </span>
     </div>
 </section>
-<p class="request-line"><span class="method"><?= e($requestMethod) ?></span> <code><?= e(request_string($_SERVER, 'REQUEST_URI')) ?></code></p>
+<p class="request-line"><span class="method"><?= e($requestMethod) ?></span> <code><?= e($requestUri) ?></code></p>
 <?php if ($solvedAt !== false): ?>
 <div class="exercise-layout solved-layout">
 <section class="learning-content">
@@ -134,19 +136,14 @@ require __DIR__ . '/includes/header.php';
         $recordId = positive_int($_GET['record']);
         $record = $recordId === null ? null : ($challenge['records'][$recordId] ?? null);
         ?>
-        <div class="challenge-output">
-            <span>Page response</span>
-            <?php if ($record === null): ?>
-                <p>Record not found.</p>
-            <?php else: ?>
-                <p><strong>Record #<?= e($recordId) ?></strong></p>
-                <dl class="response-metadata">
-                    <dt>Owner</dt><dd><?= e($record['owner']) ?></dd>
-                    <dt>Content</dt><dd><?= e($record['content']) ?></dd>
-                </dl>
-                <?php if ($record['holds_flag']): ?><code><?= e($expectedFlag) ?></code><?php endif; ?>
-            <?php endif; ?>
-        </div>
+        <?= http_trace('Record lookup', [
+            ['direction' => 'request', 'summary' => ['GET', $requestUri], 'note' => null, 'sections' => [], 'open' => false],
+            ['direction' => 'response', 'summary' => [200, 'OK'],
+                'note' => $record === null ? 'Record not found' : 'Record #' . $recordId,
+                'sections' => $record === null ? [] : ['Record' => ['Owner' => $record['owner'], 'Content' => $record['content']]],
+                'open' => $record !== null],
+        ]) ?>
+        <?php if ($record !== null && $record['holds_flag']): ?><p class="trace-flag"><code><?= e($expectedFlag) ?></code></p><?php endif; ?>
     <?php endif; ?>
 
     <?php if ($inspection !== null): ?>
@@ -160,16 +157,15 @@ require __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
     <?php if ($attempted): ?>
-        <div class="challenge-output">
-            <span>Server received</span>
-            <dl class="response-metadata">
-                <dt>Method</dt><dd><?= e($requestMethod) ?></dd>
-                <dt>Query inspect</dt><dd><?= e($describeField($_GET)) ?></dd>
-                <dt>Body inspect</dt><dd><?= e($describeField($bodyFields)) ?></dd>
-                <dt>Result</dt><dd><?= $isUnlocked ? 'Unlocked: the server returned the training flag.' : 'Locked: this request did not meet the server&#039;s condition.' ?></dd>
-            </dl>
-            <?php if ($isUnlocked): ?><code><?= e($expectedFlag) ?></code><?php endif; ?>
-        </div>
+        <?= http_trace('Server received', [
+            ['direction' => 'request', 'summary' => [$requestMethod, $requestUri], 'note' => null,
+                'sections' => ['Fields' => ['Query inspect' => $describeField($_GET), 'Body inspect' => $describeField($bodyFields)]],
+                'open' => true],
+            ['direction' => 'response', 'summary' => [200, 'OK'], 'note' => $isUnlocked ? 'Unlocked' : 'Locked',
+                'sections' => ['Result' => ['Result' => $isUnlocked ? 'Unlocked: the server returned the training flag.' : "Locked: this request did not meet the server's condition."]],
+                'open' => true],
+        ]) ?>
+        <?php if ($isUnlocked): ?><p class="trace-flag"><code><?= e($expectedFlag) ?></code></p><?php endif; ?>
     <?php endif; ?>
 
     <section class="hint-panel" aria-labelledby="hints-heading">
