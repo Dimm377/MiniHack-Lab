@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/escape.php';
+
 ini_set('display_errors', '0');
 ini_set('session.use_only_cookies', '1');
 ini_set('session.use_strict_mode', '1');
@@ -35,10 +37,6 @@ function send_security_headers(): void
     }
 }
 
-function e(mixed $value): string
-{
-    return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
 
 function redirect(string $path): void
 {

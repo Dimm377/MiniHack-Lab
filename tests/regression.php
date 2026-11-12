@@ -413,6 +413,21 @@ foreach (['/assets/fonts/OFL-IBM-Plex.txt', '/assets/fonts/other.woff2', '/asset
     check(get($path)['status'] === 404, "Font directory stays private: $path");
 }
 check(str_contains(get('/')['body'], '<link rel="preload" href="/assets/fonts/plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>'), 'Body font is preloaded');
+if (is_file($root . '/includes/trace.php')) {
+    require_once $root . '/includes/trace.php';
+}
+check(function_exists('http_trace') && function_exists('trace_masked'), 'Trace helper is available');
+if (function_exists('http_trace') && function_exists('trace_masked')) {
+    $traceHtml = http_trace('Test trace', [
+        ['direction' => 'request', 'summary' => ['GET', '/x?a="><script>'], 'note' => null, 'sections' => ['Request headers' => ['Cookie' => trace_masked('your session')]], 'open' => false],
+        ['direction' => 'response', 'summary' => [303, 'See Other'], 'note' => 'hidden hop', 'sections' => ['Response headers' => ['Location' => '/y']], 'open' => true],
+    ]);
+    check(substr_count($traceHtml, '<details') === 2 && str_contains($traceHtml, '<details open>'), 'Trace renders one details element per exchange');
+    check(str_contains($traceHtml, '&quot;&gt;&lt;script&gt;') && !str_contains($traceHtml, '<script>'), 'Trace encodes untrusted summaries');
+    check(str_contains($traceHtml, '<dd><span class="http-trace__masked">your session</span></dd>'), 'Trace renders masked values as chips');
+    check(str_contains($traceHtml, '<dt>Location</dt><dd>/y</dd>') && str_contains($traceHtml, ' · hidden hop'), 'Trace renders headers and notes');
+    check(str_contains($traceHtml, '<section class="http-trace" aria-label="Test trace">') && str_contains($traceHtml, '<span class="visually-hidden">Request: </span>'), 'Trace is labelled for assistive technology');
+}
 $css = (string) file_get_contents($root . '/assets/css/style.css');
 foreach ([['IBM Plex Sans', '400'], ['IBM Plex Sans', '600'], ['IBM Plex Sans', '700'], ['JetBrains Mono', '400'], ['JetBrains Mono', '700']] as [$family, $weight]) {
     check(preg_match('/@font-face\s*\{[^}]*font-family:\s*"' . $family . '";[^}]*font-weight:\s*' . $weight . ';[^}]*font-display:\s*swap;/s', $css) === 1, "@font-face declares $family $weight with swap");
